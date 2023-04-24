@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Beerute_StepCounter01</string>
+    <string name="tvST_null">0</string>
+    <string name="tvTM_limit">/2500</string>
+</resources>
