@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.beerute_maps02'
+    namespace 'com.example.beerute_maps03'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.example.beerute_maps02"
+        applicationId "com.example.beerute_maps03"
         minSdk 23
         targetSdk 33
         versionCode 1
