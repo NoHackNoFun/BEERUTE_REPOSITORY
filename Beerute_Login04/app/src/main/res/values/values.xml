@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">769159244132-snqjv48cj42tb1pk440v7uqujc6npicm.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">769159244132</string>
+    <string name="google_api_key" translatable="false">AIzaSyDKzkybbKFSaGPoeD87D4ozy0_TlDixZqU</string>
+    <string name="google_app_id" translatable="false">1:769159244132:android:b462c6a6aad628a0977271</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDKzkybbKFSaGPoeD87D4ozy0_TlDixZqU</string>
+    <string name="google_storage_bucket" translatable="false">beerute01.appspot.com</string>
+    <string name="project_id" translatable="false">beerute01</string>
+</resources>
