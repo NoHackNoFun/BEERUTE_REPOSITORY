@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Beerute_Login04</string>
+    <string name="prefs_file">com.example.beerute_login04.PREFERENCE_FILE_KEY</string>
 </resources>

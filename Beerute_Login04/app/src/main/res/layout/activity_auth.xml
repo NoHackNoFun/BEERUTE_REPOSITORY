@@ -7,6 +7,7 @@
     tools:context=".AuthActivity">
 
     <LinearLayout
+        android:id="@+id/authLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -50,7 +51,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@color/Light_Blue_60001_Firebase"
+                android:backgroundTint="@color/Light_Blue_60001_Firebase"
                 android:text="Registrar"
                 android:textColor="@color/white" />
 
@@ -64,10 +65,23 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@color/Blue_Firebase"
+                android:backgroundTint="@color/Blue_Firebase"
                 android:text="Acceder"
                 android:textColor="@color/white" />
         </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="8dp" />
+
+        <Button
+            android:id="@+id/googleButton"
+            style="@android:style/Widget.Material.Light.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/Amber_700_Firebase"
+            android:text="Google"
+            android:textColor="@color/white" />
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
