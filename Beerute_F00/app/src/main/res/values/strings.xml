@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Beerute_F00</string>
+    <string name="title_auth">Autenticación</string>
+    <string name="title_explore">Explorar</string>
+    <string name="title_profile">Perfil</string>
+    <string name="title_record">Grabar Ruta</string>
+    <string name="prefs_file">com.example.beerute_login04.PREFERENCE_FILE_KEY</string>
+</resources>
