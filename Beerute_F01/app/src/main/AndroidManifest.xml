@@ -35,6 +35,14 @@
             android:exported="false" />
 
         <activity
+            android:name=".CreatedActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".DBActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ProfileActivity"
             android:exported="false" />
 

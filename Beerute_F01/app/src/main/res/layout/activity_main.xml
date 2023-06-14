@@ -56,6 +56,15 @@
             android:text="Usuario"
             android:textColor="@color/white" />
 
+        <Button
+            android:id="@+id/dbButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@color/Blue_Firebase"
+            android:text="Base de Datos"
+            android:textColor="@color/white" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

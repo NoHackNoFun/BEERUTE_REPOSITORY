@@ -1,10 +1,12 @@
 package com.example.beerute_f01
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -21,6 +23,10 @@ import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 
 class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener {
+
+    lateinit var createRouteButton: Button
+    lateinit var createdRouteButto: Button
+
     private lateinit var map:GoogleMap
 
     companion object {
@@ -31,6 +37,23 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create)
         createMapFragment()
+
+        //Setup
+        setup()
+    }
+
+    private fun setup() {
+
+        createRouteButton = findViewById(R.id.createRouteButton)
+        createdRouteButto = findViewById(R.id.createdRouteButton)
+
+        createRouteButton.setOnClickListener {
+        }
+
+        createdRouteButto.setOnClickListener {
+            val cIntent = Intent(this, CreatedActivity::class.java)
+            startActivity(cIntent)
+        }
     }
 
     private fun createMapFragment() {
