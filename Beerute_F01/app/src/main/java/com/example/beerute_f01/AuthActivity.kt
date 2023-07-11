@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import com.example.beerute_f01.Object.GlobalVariables
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -138,6 +139,9 @@ class AuthActivity : AppCompatActivity() {
     }
 
     private fun showMain(email: String, provider: ProviderType) {
+
+        GlobalVariables.userEmail = email
+        GlobalVariables.userProvider = provider.toString()
 
         /*val profileIntent = Intent(this, ProfileActivity::class.java).apply {
             putExtra("email", email)

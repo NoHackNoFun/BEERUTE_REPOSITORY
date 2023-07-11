@@ -39,8 +39,31 @@
             android:exported="false" />
 
         <activity
+            android:name=".IAHelpActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".DBActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".StepCounter.StepCounterMain"
+            android:exported="false" />
+
+        <activity
+            android:name=".StepCounter.StepsCounterActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".StepCounter.CustomAlgoResultsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".StepCounter.StepsHistoryActivity"
+            android:exported="false" />
+
+        <service android:name=".StepCounter.StepsTrackerService" />
+        <service android:name=".StepCounter.StepsService" />
 
         <activity
             android:name=".ProfileActivity"

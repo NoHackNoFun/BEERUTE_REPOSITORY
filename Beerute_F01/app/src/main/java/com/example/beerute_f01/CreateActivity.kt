@@ -22,10 +22,15 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 
+import com.example.beerute_f01.Object.RuteObject
+
 class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener {
 
+    private val ro = RuteObject
+
     lateinit var createRouteButton: Button
-    lateinit var createdRouteButto: Button
+    lateinit var createdRouteButton: Button
+    lateinit var clearRouteButton: Button
 
     private lateinit var map:GoogleMap
 
@@ -45,14 +50,24 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
     private fun setup() {
 
         createRouteButton = findViewById(R.id.createRouteButton)
-        createdRouteButto = findViewById(R.id.createdRouteButton)
+        createdRouteButton = findViewById(R.id.createdRouteButton)
+        clearRouteButton = findViewById(R.id.clearRouteButton)
 
         createRouteButton.setOnClickListener {
         }
 
-        createdRouteButto.setOnClickListener {
+        createdRouteButton.setOnClickListener {
+
             val cIntent = Intent(this, CreatedActivity::class.java)
             startActivity(cIntent)
+        }
+
+        clearRouteButton.setOnClickListener {
+
+            RuteObject.clearMatrix(this)
+
+            val clIntent = Intent(this, CreateActivity::class.java)
+            startActivity(clIntent)
         }
     }
 
@@ -70,7 +85,36 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         enableLocation()
     }
 
-    private fun createPolylines(){
+    fun createPolylines(){
+
+        val sm = ro.getMatrix(this)
+        val l = sm?.get(0)?.size
+
+        val polylineOptions = PolylineOptions()
+
+        if (l != null) {
+            // Recorrer la matriz de latitudes y longitudes
+            for (i in 0 until l) {
+                val latLng = LatLng(sm?.get(0)?.get(i) ?: 0.0, sm?.get(1)?.get(i) ?: 0.0)
+                polylineOptions.add(latLng)
+            }
+        } /*else
+            // Condición no cumplida, se lanza un mensaje de error
+            error("La longitud del Array no puede ser nula")*/
+
+        polylineOptions.width(15f).color(ContextCompat.getColor(this, R.color.kotlin))
+
+        /*val polylineOptions = PolylineOptions()
+            .add(LatLng( sm?.get(0)?.get(0) ?: 0.0,sm?.get(1)?.get(0) ?: 0.0))
+            .add(LatLng( sm?.get(0)?.get(1) ?: 0.0, sm?.get(1)?.get(1) ?: 0.0))
+            .add(LatLng( sm?.get(0)?.get(2) ?: 0.0, sm?.get(1)?.get(2) ?: 0.0))
+            .add(LatLng( sm?.get(0)?.get(3) ?: 0.0, sm?.get(1)?.get(3) ?: 0.0))
+            .add(LatLng( sm?.get(0)?.get(4) ?: 0.0,  sm?.get(1)?.get(4) ?: 0.0))
+            .add(LatLng( sm?.get(0)?.get(5) ?: 0.0, sm?.get(1)?.get(5) ?: 0.0))
+            //.add(LatLng(40.419173113350965,-3.705976009368897))
+            .width(15f)
+            .color(ContextCompat.getColor(this, R.color.kotlin))
+
         val polylineOptions = PolylineOptions()
             .add(LatLng(40.419173113350965,-3.705976009368897))
             .add(LatLng( 40.4150807746539, -3.706072568893432))
@@ -80,8 +124,9 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
             .add(LatLng( 40.419173113350965, -3.7048280239105225))
             //.add(LatLng(40.419173113350965,-3.705976009368897))
             .width(15f)
-            .color(ContextCompat.getColor(this, R.color.kotlin))
+            .color(ContextCompat.getColor(this, R.color.kotlin))*/
 
+        // Crear una polilínea en el mapa con las opciones configuradas
         val polyline = map.addPolyline(polylineOptions)
 
         //polyline.startCap = RoundCap()
