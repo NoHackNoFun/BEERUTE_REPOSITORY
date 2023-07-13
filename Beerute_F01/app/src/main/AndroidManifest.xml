@@ -23,6 +23,10 @@
             android:value="@string/google_maps_key" />
 
         <activity
+            android:name=".RegisterUserActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".MainActivity"
             android:exported="false" />
 
@@ -35,15 +39,15 @@
             android:exported="false" />
 
         <activity
-            android:name=".CreatedActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".IAHelpActivity"
             android:exported="false" />
 
         <activity
             android:name=".DBActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".testActivity"
             android:exported="false" />
 
         <activity
@@ -60,6 +64,10 @@
 
         <activity
             android:name=".StepCounter.StepsHistoryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".NewStepCounterActivity"
             android:exported="false" />
 
         <service android:name=".StepCounter.StepsTrackerService" />

@@ -51,20 +51,11 @@
                 android:textColor="@color/white" />
 
             <Button
-                android:id="@+id/createdButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/Orange_70000_Firebase"
-                android:text="Rutas Creadas"
-                android:textColor="@color/white" />
-
-            <Button
                 android:id="@+id/IAHelpButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:backgroundTint="@color/Orange_700001_Firebase"
+                android:backgroundTint="@color/Orange_70000_Firebase"
                 android:text="Ayuda IA"
                 android:textColor="@color/white" />
 
@@ -73,7 +64,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:backgroundTint="@color/Orange_70001_Firebase"
+                android:backgroundTint="@color/Orange_700001_Firebase"
                 android:text="Usuario"
                 android:textColor="@color/white" />
 
@@ -84,6 +75,24 @@
                 android:layout_weight="1"
                 android:backgroundTint="@color/Blue_Firebase"
                 android:text="Base de Datos"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/testButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/Blue_Firebase01"
+                android:text="Test Step Counter"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/newStepButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/Blue_Firebase01"
+                android:text="NEW Step Counter"
                 android:textColor="@color/white" />
 
             <Button

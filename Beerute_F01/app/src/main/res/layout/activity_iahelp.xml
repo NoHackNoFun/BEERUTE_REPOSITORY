@@ -1,52 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".IAHelpActivity">
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scrollView"
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="match_parent"
+        android:id="@+id/recycler_view"
+        android:layout_above="@id/bottom_layout" />
 
-
-        <LinearLayout
-            android:id="@+id/chatContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-    </androidx.core.widget.NestedScrollView>
-
-    <RelativeLayout
-        android:id="@+id/inputLayout"
+    <TextView
+        android:id="@+id/welcome_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:text="¡BIENVENIDO!\nPregunta para / por tu viaje"
+        android:textSize="20dp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
         android:layout_alignParentBottom="true"
-        android:background="#FFFFFF"
-        android:padding="8dp">
+        android:padding="8dp"
+        android:id="@+id/bottom_layout" >
 
         <EditText
-            android:id="@+id/messageEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:layout_toStartOf="@+id/sendButton"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:hint="Escribe tu mensaje aquí"
-            android:inputType="textMultiLine"
-            android:maxLines="5"
-            android:minHeight="48dp" />
+            android:id="@+id/message_edit_text"
+            android:layout_centerInParent="true"
+            android:hint="Escribe aquí "
+            android:padding="16dp"
+            android:layout_toLeftOf="@id/send_btn"
+            android:background="@drawable/rounded_corner" />
 
-        <Button
-            android:id="@+id/sendButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <ImageButton
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:id="@+id/send_btn"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:text="Enviar" />
+            android:layout_centerInParent="true"
+            android:layout_marginStart="10dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_baseline_send_24"
+            android:background="?attr/selectableItemBackgroundBorderless" />
 
     </RelativeLayout>
-
 </RelativeLayout>

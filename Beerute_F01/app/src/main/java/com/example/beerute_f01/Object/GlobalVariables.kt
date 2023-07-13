@@ -11,4 +11,6 @@ object GlobalVariables {
     var selectedTime: Double = 0.0
     var selectedUser: String = ""
     var selectedBestUser: String = ""
+
+    var crono: Int = 0
 }

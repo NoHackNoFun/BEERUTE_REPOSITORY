@@ -1,49 +1,185 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/mapFrameLayout"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
-
-    <fragment
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="10dp" />
+    android:background="#FFFFFF"
+    tools:context=".CreateActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="bottom"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <Button
-            android:id="@+id/createRouteButton"
+        <Space
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/Amber_700_Firebase"
-            android:text="Grabar Ruta"
-            android:textColor="@color/white" />
+            android:layout_height="10dp" />
 
-        <Button
-            android:id="@+id/createdRouteButton"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/Orange_700_Firebase"
-            android:text="Rutas Creadas"
-            android:textColor="@color/white" />
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/clearRouteButton"
+            <Button
+                android:id="@+id/createRouteButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/Amber_700_Firebase"
+                android:text="Grabar Ruta"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/exploreRouteButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/Orange_700_Firebase"
+                android:text="Explorar"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/clearRouteButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/Orange_70000_Firebase"
+                android:text="Limpiar"
+                android:textColor="@color/white" />
+        </LinearLayout>
+
+        <Space
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/Orange_70000_Firebase"
-            android:text="Limpiar"
-            android:textColor="@color/white" />
+            android:layout_height="10dp" />
+
+        <FrameLayout
+            android:id="@+id/mapFrameLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white">
+
+            <fragment
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <LinearLayout
+                android:id="@+id/linearStepCounter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone" >
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="10dp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <Space
+                            android:layout_width="10dp"
+                            android:layout_height="match_parent" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/spinner_bg"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <Space
+                                android:layout_width="match_parent"
+                                android:layout_height="8dp" />
+
+                            <TextView
+                                android:id="@+id/stepCountTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/differenceTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Pasos: 0"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/distanceTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="   Distancia: 0,000 km   "
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/timeTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="      Tiempo: 00:00:00      "
+                                android:textSize="16sp" />
+
+                            <Chronometer
+                                android:id="@+id/chronometer"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="16dp"
+                                android:layout_marginBottom="16dp"
+                                android:textSize="16sp" />
+
+                            <Button
+                                android:id="@+id/playButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:backgroundTint="@color/Orange_700_Firebase"
+                                android:text="Play"
+                                android:textColor="@color/white" />
+
+                            <Button
+                                android:id="@+id/readyButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:backgroundTint="@color/Orange_700001_Firebase"
+                                android:text="Listo"
+                                android:textColor="@color/white"
+                                android:visibility="gone"/>
+
+                            <EditText
+                                android:id="@+id/savePlaceEditText"
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:hint="Ubicación"
+                                android:visibility="gone"/>
+
+                            <Button
+                                android:id="@+id/saveButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:backgroundTint="@color/Light_Blue_60001_Firebase"
+                                android:text="Guardar"
+                                android:textColor="@color/white"
+                                android:visibility="gone"/>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
     </LinearLayout>
 
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
