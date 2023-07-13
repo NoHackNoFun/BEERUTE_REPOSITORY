@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.ColorStateList
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -23,6 +22,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.beerute_f01.Object.GlobalVariables
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -35,6 +35,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import com.example.beerute_f01.Object.RuteObject
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.DecimalFormat
 
 class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener,
@@ -109,10 +110,16 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
             if (linearStepCounter.visibility == View.VISIBLE) {
                 // El LinearLayout está visible, lo ocultamos y cambiamos el texto del botón
                 linearStepCounter.visibility = View.GONE
+                readyButton.visibility = View.GONE
+                savePlaceEditText.visibility = View.GONE
+                saveButton.visibility = View.GONE
                 createRouteButton.text = "Grabar Ruta"
             } else {
                 // El LinearLayout está oculto, lo mostramos y cambiamos el texto del botón
                 linearStepCounter.visibility = View.VISIBLE
+                readyButton.visibility = View.GONE
+                savePlaceEditText.visibility = View.GONE
+                saveButton.visibility = View.GONE
                 createRouteButton.text = "Eliminar Ruta"
             }
         }
@@ -142,8 +149,13 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
                 timeTextView.text = "      Tiempo: " + formatElapsedTime(elapsedTime) + "      "
                 playButton.text = "Play"
 
-                //Aparece el botón "listo"
+                // Aparece el botón "listo"
                 readyButton.visibility = View.VISIBLE
+
+                // Guarda los valores en las variables globales
+                GlobalVariables.selectedSteps = difference
+                GlobalVariables.selectedKm = distance
+                GlobalVariables.selectedTime = elapsedTime.toDouble()
 
             } else {
                 chronometer.base = SystemClock.elapsedRealtime() - elapsedTime
@@ -152,25 +164,48 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
                 timeTextView.text = "      Tiempo: " + formatElapsedTime(elapsedTime) + "      "
                 playButton.text = "Stop"
 
-                //Desaparece el botón "listo"
+                // Desaparece el botón "listo"
                 readyButton.visibility = View.GONE
+                savePlaceEditText.visibility = View.GONE
+                saveButton.visibility = View.GONE
             }
 
             isChronometerRunning = !isChronometerRunning
         }
 
-        //Botón Listo (guarda los datos en variables globales) y hace aparecer al textview y al botón guardar
+        // Botón Listo (guarda los datos en variables globales) y hace aparecer al textview y al botón guardar
         readyButton.setOnClickListener {
-
-
-
             savePlaceEditText.visibility = View.VISIBLE
             saveButton.visibility = View.VISIBLE
         }
 
-        //Al poner el lugar (debe contener algo) le das al botón guardar y guarda las variables globales en firebase
+        // Al poner el lugar (debe contener algo) le das al botón guardar y guarda las variables globales en firebase
         saveButton.setOnClickListener {
+            val place = savePlaceEditText.text.toString()
+            if (place.isNotEmpty()) {
+                GlobalVariables.selectedPlace = place
 
+                val routeData = hashMapOf(
+                    "bestuser" to GlobalVariables.selectedUser,
+                    "km" to GlobalVariables.selectedKm,
+                    "place" to GlobalVariables.selectedPlace,
+                    "steps" to GlobalVariables.selectedSteps,
+                    "time" to GlobalVariables.selectedTime,
+                    "user" to GlobalVariables.selectedUser
+                )
+
+                val firestore = FirebaseFirestore.getInstance()
+                val routeRef = firestore.collection("routes").document("0000003")
+                routeRef.set(routeData)
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Datos guardados en Firebase", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Error al guardar los datos en Firebase", Toast.LENGTH_SHORT).show()
+                    }
+            } else {
+                Toast.makeText(this, "Debes ingresar un lugar", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -334,7 +369,7 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         // Hacer algo con el valor guardado
     }
 
-    //testActivity
+    // testActivity
 
     override fun onResume() {
         super.onResume()
@@ -381,7 +416,7 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
 
     private fun calculateDistance(steps: Int): Double {
         // Assuming average step length of 0.60 meters
-        val stepLength = 0.60
+        val stepLength = 0.56
         return steps * stepLength / 1000 // Convert to kilometers
     }
 

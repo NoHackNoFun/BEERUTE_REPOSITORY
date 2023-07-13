@@ -7,6 +7,7 @@ object GlobalVariables {
 
     var selectedRouteId: String = ""
     var selectedPlace: String = ""
+    var selectedSteps: Int = 0
     var selectedKm: Double = 0.0
     var selectedTime: Double = 0.0
     var selectedUser: String = ""
