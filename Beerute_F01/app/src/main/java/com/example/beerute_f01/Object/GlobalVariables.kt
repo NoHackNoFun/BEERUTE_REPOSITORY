@@ -13,5 +13,9 @@ object GlobalVariables {
     var selectedUser: String = ""
     var selectedBestUser: String = ""
 
-    var crono: Int = 0
+    var oldlatitude: Double = 0.0
+    var oldlongitude: Double = 0.0
+    var latitude: Double = 0.0
+    var longitude: Double = 0.0
+    var lastid: Int = 0
 }

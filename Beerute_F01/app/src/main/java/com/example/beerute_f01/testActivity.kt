@@ -2,6 +2,7 @@ package com.example.beerute_f01
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -70,11 +71,17 @@ class testActivity : AppCompatActivity(), SensorEventListener {
                 timeTextView.text = formatElapsedTime(elapsedTime)
                 playButton.text = "Play"
             } else {
-                chronometer.base = SystemClock.elapsedRealtime() - elapsedTime
+
+                chronometer.base = SystemClock.elapsedRealtime()
+
                 chronometer.start()
                 chronometer.format = "%s"
-                timeTextView.text = formatElapsedTime(elapsedTime)
+
+                timeTextView.text = formatElapsedTime(0)
                 playButton.text = "Stop"
+                differenceTextView.text = "Steps: 0"
+                distanceTextView.text = "Distance: 0 km"
+                elapsedTime = 0
             }
 
             isChronometerRunning = !isChronometerRunning
@@ -169,5 +176,11 @@ class testActivity : AppCompatActivity(), SensorEventListener {
         val seconds = (time / 1000) % 60
 
         return String.format("%02d:%02d:%02d", hours, minutes, seconds)
+    }
+
+    override fun onBackPressed() {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 }

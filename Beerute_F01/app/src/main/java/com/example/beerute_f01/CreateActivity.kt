@@ -12,7 +12,9 @@ import android.hardware.SensorManager
 import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
 import android.os.SystemClock
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.Chronometer
@@ -35,32 +37,52 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import com.example.beerute_f01.Object.RuteObject
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.TimeZone
 
 class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener,
     SensorEventListener {
+
+    private val firestore = FirebaseFirestore.getInstance()
+
+    val latitudeArray = mutableListOf<Double>()
+    val longitudeArray = mutableListOf<Double>()
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var sensorManager: SensorManager
+    private var stepSensor: Sensor? = null
+
+    private lateinit var chronometer: Chronometer
+    private var isRunning = false
+
+    private lateinit var map: GoogleMap
+    private val ruteObject = RuteObject
+
+    private lateinit var linearStepCounter: LinearLayout
+
+    private lateinit var savePlaceEditText: EditText
+
+    private lateinit var placeTextView: TextView
+    private lateinit var stepCountTextView: TextView
+    private lateinit var differenceTextView: TextView
+    private lateinit var distanceTextView: TextView
+    private lateinit var timeTextView: TextView
 
     private lateinit var createRouteButton: Button
     private lateinit var exploreRouteButton: Button
     private lateinit var clearRouteButton: Button
 
-    private lateinit var map: GoogleMap
-    private val ruteObject = RuteObject
-
-    private lateinit var sensorManager: SensorManager
-    private var stepSensor: Sensor? = null
-
-    private lateinit var linearStepCounter: LinearLayout
-    private lateinit var stepCountTextView: TextView
-    private lateinit var differenceTextView: TextView
-    private lateinit var distanceTextView: TextView
     private lateinit var playButton: Button
+    private lateinit var ePlayButton: Button
     private lateinit var readyButton: Button
-    private lateinit var savePlaceEditText: EditText
     private lateinit var saveButton: Button
-    private lateinit var timeTextView: TextView
-    private lateinit var chronometer: Chronometer
+
+    private val handler = Handler()
 
     private val permissionRequestCode = 123
     private var initialStepCount = 0
@@ -73,50 +95,94 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         const val REQUEST_CODE_LOCATION = 0
     }
 
+    /**
+     * Método de creación de la actividad.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create)
+
         createMapFragment()
         setupButtons()
     }
 
+    /**
+     * Método para configurar los botones y las interacciones con el usuario.
+     */
     @SuppressLint("ResourceAsColor")
     private fun setupButtons() {
-        createRouteButton = findViewById(R.id.createRouteButton)
-        exploreRouteButton = findViewById(R.id.exploreRouteButton)
-        clearRouteButton = findViewById(R.id.clearRouteButton)
-
-        linearStepCounter = findViewById(R.id.linearStepCounter)
-        stepCountTextView = findViewById(R.id.stepCountTextView)
-        differenceTextView = findViewById(R.id.differenceTextView)
-        distanceTextView = findViewById(R.id.distanceTextView)
-        playButton = findViewById(R.id.playButton)
-        readyButton = findViewById(R.id.readyButton)
-        savePlaceEditText = findViewById(R.id.savePlaceEditText)
-        saveButton = findViewById(R.id.saveButton)
-        timeTextView = findViewById(R.id.timeTextView)
-        chronometer = findViewById(R.id.chronometer)
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        chronometer = findViewById(R.id.chronometer)
+
+        linearStepCounter = findViewById(R.id.linearStepCounter)
+
+        savePlaceEditText = findViewById(R.id.savePlaceEditText)
+
+        placeTextView = findViewById(R.id.placeTextView)
+        stepCountTextView = findViewById(R.id.stepCountTextView)
+        differenceTextView = findViewById(R.id.differenceTextView)
+        distanceTextView = findViewById(R.id.distanceTextView)
+        timeTextView = findViewById(R.id.timeTextView)
+
+        createRouteButton = findViewById(R.id.createRouteButton)
+        exploreRouteButton = findViewById(R.id.exploreRouteButton)
+        clearRouteButton = findViewById(R.id.clearRouteButton)
+        playButton = findViewById(R.id.playButton)
+        ePlayButton = findViewById(R.id.ePlayButton)
+        readyButton = findViewById(R.id.readyButton)
+        saveButton = findViewById(R.id.saveButton)
+
+        // Verificar disponibilidad del sensor de contador de pasos
         if (stepSensor == null) {
             Toast.makeText(this, "El sensor de contador de pasos no está disponible en este dispositivo.", Toast.LENGTH_SHORT).show()
         } else {
             requestSensorPermission()
         }
 
+        // Obtener número de documentos en la colección
+        firestore.collection("routes").get()
+            .addOnSuccessListener { querySnapshot ->
+                val count = querySnapshot.size()
+                GlobalVariables.lastid = count
+            }
+            .addOnFailureListener { exception ->
+                println("Error al acceder a Firestore: ${exception.message}")
+            }
+
+        // Configurar listeners de botones
         createRouteButton.setOnClickListener {
             if (linearStepCounter.visibility == View.VISIBLE) {
-                // El LinearLayout está visible, lo ocultamos y cambiamos el texto del botón
+
+                if (isChronometerRunning) chronometer.stop()
+
+                differenceTextView.text = "Pasos: 0"
+                distanceTextView.text = "Distancia: 0,000 km"
+                elapsedTime = 0
+                timeTextView.text = "      Tiempo: " + formatElapsedTime(elapsedTime) + "      "
+                chronometer.base = SystemClock.elapsedRealtime()
+                chronometer.format = "%s"
+
+                playButton.text = "Play"
+
+                // Ocultar LinearLayout y cambiar texto del botón
                 linearStepCounter.visibility = View.GONE
                 readyButton.visibility = View.GONE
                 savePlaceEditText.visibility = View.GONE
                 saveButton.visibility = View.GONE
                 createRouteButton.text = "Grabar Ruta"
+
             } else {
-                // El LinearLayout está oculto, lo mostramos y cambiamos el texto del botón
+
+                clearGlobalVariables()
+
                 linearStepCounter.visibility = View.VISIBLE
+                ePlayButton.visibility = View.GONE
+                playButton.visibility = View.VISIBLE
                 readyButton.visibility = View.GONE
                 savePlaceEditText.visibility = View.GONE
                 saveButton.visibility = View.GONE
@@ -130,7 +196,11 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         }
 
         clearRouteButton.setOnClickListener {
+
             ruteObject.clearMatrix(this)
+
+            clearGlobalVariables()
+
             val intent = Intent(this, CreateActivity::class.java)
             startActivity(intent)
         }
@@ -143,28 +213,36 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
             val distance = calculateDistance(difference)
             distanceTextView.text = "   Distancia: ${formatDistance(distance)} km   "
 
-            if (isChronometerRunning) {
+            if (isChronometerRunning && playButton.text == "Stop") {
+
+                // Detener el bucle
+                stopLoop()
+
                 chronometer.stop()
                 elapsedTime = SystemClock.elapsedRealtime() - chronometer.base
                 timeTextView.text = "      Tiempo: " + formatElapsedTime(elapsedTime) + "      "
                 playButton.text = "Play"
 
-                // Aparece el botón "listo"
+                // Mostrar botón "listo"
                 readyButton.visibility = View.VISIBLE
 
-                // Guarda los valores en las variables globales
+                // Guardar valores en variables globales
                 GlobalVariables.selectedSteps = difference
-                GlobalVariables.selectedKm = distance
+                GlobalVariables.selectedKm = formatDistance(distance)
                 GlobalVariables.selectedTime = elapsedTime.toDouble()
 
-            } else {
+            } else if (playButton.text == "Play") {
+
+                // Iniciar bucle
+                startLoop()
+
                 chronometer.base = SystemClock.elapsedRealtime() - elapsedTime
                 chronometer.start()
                 chronometer.format = "%s"
                 timeTextView.text = "      Tiempo: " + formatElapsedTime(elapsedTime) + "      "
                 playButton.text = "Stop"
 
-                // Desaparece el botón "listo"
+                // Ocultar botón "listo"
                 readyButton.visibility = View.GONE
                 savePlaceEditText.visibility = View.GONE
                 saveButton.visibility = View.GONE
@@ -173,16 +251,58 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
             isChronometerRunning = !isChronometerRunning
         }
 
-        // Botón Listo (guarda los datos en variables globales) y hace aparecer al textview y al botón guardar
+        ePlayButton.setOnClickListener {
+            if (isChronometerRunning) {
+
+                chronometer.stop()
+                elapsedTime = SystemClock.elapsedRealtime() - chronometer.base
+
+                if (elapsedTime < GlobalVariables.selectedTime) {
+
+                    firestore.collection("routes").document(GlobalVariables.selectedRouteId).update("time", elapsedTime)
+                        .addOnFailureListener { exception ->
+                            Toast.makeText(this, "ERROR, La actualización NO se realizó con éxito", Toast.LENGTH_SHORT).show()
+                        }
+
+                    firestore.collection("routes").document(GlobalVariables.selectedRouteId).update("bestuser", GlobalVariables.userEmail)
+                        .addOnFailureListener { exception ->
+                            Toast.makeText(this, "ERROR, La actualización NO se realizó con éxito", Toast.LENGTH_SHORT).show()
+                        }
+
+
+                    Toast.makeText(this, "¡¡¡ HAS BATIDO EL RECORD\nENHORABUENA !!!", Toast.LENGTH_SHORT).show()
+
+                } else {
+                    Toast.makeText(this, "¡¡¡ Esfuérzate cada día\ny LO CONSEGUIRÁS ${elapsedTime} | ${GlobalVariables.selectedTime}!!!", Toast.LENGTH_SHORT).show()
+                }
+                clearGlobalVariables()
+
+            } else {
+                startChronometer()
+            }
+        }
+
         readyButton.setOnClickListener {
             savePlaceEditText.visibility = View.VISIBLE
             saveButton.visibility = View.VISIBLE
         }
 
-        // Al poner el lugar (debe contener algo) le das al botón guardar y guarda las variables globales en firebase
         saveButton.setOnClickListener {
-            val place = savePlaceEditText.text.toString()
+
+            // Obtener número de documentos en la colección
+            firestore.collection("routes").get()
+                .addOnSuccessListener { querySnapshot ->
+                    val count = querySnapshot.size()
+                    GlobalVariables.lastid = count
+                }
+                .addOnFailureListener { exception ->
+                    println("Error al acceder a Firestore: ${exception.message}")
+                }
+
+            val place: String = savePlaceEditText.text.toString()
+
             if (place.isNotEmpty()) {
+
                 GlobalVariables.selectedPlace = place
 
                 val routeData = hashMapOf(
@@ -191,11 +311,15 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
                     "place" to GlobalVariables.selectedPlace,
                     "steps" to GlobalVariables.selectedSteps,
                     "time" to GlobalVariables.selectedTime,
-                    "user" to GlobalVariables.selectedUser
+                    "user" to GlobalVariables.selectedUser,
+                    "coordinatelist" to hashMapOf(
+                        "latitude" to latitudeArray.toList(),
+                        "longitude" to longitudeArray.toList(),
+                        "length" to latitudeArray.size
+                    )
                 )
 
-                val firestore = FirebaseFirestore.getInstance()
-                val routeRef = firestore.collection("routes").document("0000003")
+                val routeRef = firestore.collection("routes").document(GlobalVariables.lastid.toString())
                 routeRef.set(routeData)
                     .addOnSuccessListener {
                         Toast.makeText(this, "Datos guardados en Firebase", Toast.LENGTH_SHORT).show()
@@ -206,22 +330,72 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
             } else {
                 Toast.makeText(this, "Debes ingresar un lugar", Toast.LENGTH_SHORT).show()
             }
+
+            differenceTextView.text = "Pasos: 0"
+            distanceTextView.text = "Distancia: 0,000 km"
+            elapsedTime = 0
+            timeTextView.text = "      Tiempo: " + formatElapsedTime(elapsedTime) + "      "
+            chronometer.base = SystemClock.elapsedRealtime()
+            chronometer.format = "%s"
+
+            saveButton.visibility = View.GONE
+            readyButton.visibility = View.GONE
+            linearStepCounter.visibility = View.GONE
+
+            createRouteButton.text = "Grabar Ruta"
+
         }
     }
 
+    /**
+     * Método para crear el fragmento del mapa.
+     */
     private fun createMapFragment() {
         val mapFragment : SupportMapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
     }
 
+    /**
+     * Método llamado cuando el mapa está listo para ser usado.
+     */
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
+
+        setRouteDetails()
         createPolylines()
+
         map.setOnMyLocationButtonClickListener(this)
         map.setOnMyLocationClickListener(this)
         enableLocation()
     }
 
+    /**
+     * Método para visualizar los detalles de la ruta seleccionada.
+     */
+    fun setRouteDetails() {
+
+        if (GlobalVariables.selectedPlace != "") {
+
+            linearStepCounter.visibility = View.VISIBLE
+            placeTextView.visibility = View.VISIBLE
+            stepCountTextView.visibility = View.GONE
+            differenceTextView.visibility = View.VISIBLE
+            distanceTextView.visibility = View.VISIBLE
+            timeTextView.visibility = View.VISIBLE
+            playButton.visibility = View.GONE
+            ePlayButton.visibility = View.VISIBLE
+
+
+            placeTextView.text = "Lugar: ${GlobalVariables.selectedPlace}"
+            differenceTextView.text = "Pasos: ${GlobalVariables.selectedSteps}"
+            distanceTextView.text = "   Distancia: ${GlobalVariables.selectedKm} km   "
+            timeTextView.text = "      Tiempo: ${GlobalVariables.selectedTime}      "
+        }
+    }
+
+    /**
+     * Método para crear las polilíneas en el mapa.
+     */
     private fun createPolylines() {
         val sm = ruteObject.getMatrix(this)
         val l = sm?.get(0)?.size
@@ -234,7 +408,6 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
             }
         } else {
             Toast.makeText(this, "Se ha limpiado el mapa", Toast.LENGTH_LONG).show()
-            //error("La longitud del Array no puede ser nula")
         }
 
         polylineOptions.width(15f).color(ContextCompat.getColor(this, R.color.kotlin))
@@ -253,6 +426,9 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(fc, 17f), 3000, null)
     }
 
+    /**
+     * Método para cambiar el color de una polilínea cuando se hace clic en ella.
+     */
     private fun changeColor(polyline: Polyline) {
         val color = (0..3).random()
         val colorId = when(color) {
@@ -265,10 +441,16 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         polyline.color = ContextCompat.getColor(this, colorId)
     }
 
+    /**
+     * Método para verificar si se ha concedido el permiso de ubicación.
+     */
     private fun isLocationPermissionGranted(): Boolean {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 
+    /**
+     * Método para habilitar la ubicación en el mapa.
+     */
     private fun enableLocation() {
         if (!::map.isInitialized) return
         if (isLocationPermissionGranted()) {
@@ -280,13 +462,6 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
                 return
             }
             map.isMyLocationEnabled = true
@@ -295,6 +470,9 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         }
     }
 
+    /**
+     * Método para solicitar el permiso de ubicación al usuario.
+     */
     private fun requestLocationPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
             Toast.makeText(this, "Ve a ajustes y acepta los permisos", Toast.LENGTH_LONG).show()
@@ -303,6 +481,9 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         }
     }
 
+    /**
+     * Método para manejar la respuesta del usuario al solicitar permisos.
+     */
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == permissionRequestCode) {
@@ -315,7 +496,6 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
                             Toast.makeText(this, "Para activar la localización ve a ajustes y acepta los permisos", Toast.LENGTH_LONG).show()
                         }
                     }
-                    // Agrega otros casos de acuerdo a tus necesidades
                 }
             }
         }
@@ -324,8 +504,6 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
             return
         }
 
-        // Lógica adicional que necesites realizar después de obtener los permisos
-
         if (stepSensor != null) {
             sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_NORMAL)
         } else {
@@ -333,6 +511,9 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         }
     }
 
+    /**
+     * Método llamado al reanudar las fragmentos de la actividad.
+     */
     override fun onResumeFragments() {
         super.onResumeFragments()
         if (!::map.isInitialized) return
@@ -343,48 +524,46 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         }
     }
 
+    /**
+     * Método llamado cuando se hace clic en el botón de ubicación del mapa.
+     */
     override fun onMyLocationButtonClick(): Boolean {
         Toast.makeText(this, "Botón pulsado", Toast.LENGTH_SHORT).show()
         return false
     }
 
+    /**
+     * Método llamado cuando se hace clic en la ubicación actual en el mapa.
+     */
     override fun onMyLocationClick(p0: Location) {
         Toast.makeText(this, "Estás en ${p0.latitude}, ${p0.longitude}", Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * Método para iniciar el cronómetro.
+     */
     private fun startChronometer() {
         chronometer.base = SystemClock.elapsedRealtime() - elapsedMillis
         chronometer.start()
-        playButton.text = "Stop"
         isChronometerRunning = true
     }
 
+    /**
+     * Método para detener el cronómetro.
+     */
     private fun stopChronometer() {
-        elapsedMillis = SystemClock.elapsedRealtime() - chronometer.base
         chronometer.stop()
-        playButton.text = "Play"
+        elapsedMillis = SystemClock.elapsedRealtime() - chronometer.base
         isChronometerRunning = false
-        // Guardar el valor en una variable global
+
         val elapsedSeconds = elapsedMillis / 1000
-        // Hacer algo con el valor guardado
+
+        // Realizar alguna operación con el valor guardado
     }
 
-    // testActivity
-
-    override fun onResume() {
-        super.onResume()
-        if (stepSensor != null) {
-            sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (stepSensor != null) {
-            sensorManager.unregisterListener(this)
-        }
-    }
-
+    /**
+     * Método llamado cuando se produce un cambio en el sensor de conteo de pasos.
+     */
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type == Sensor.TYPE_STEP_COUNTER) {
             val steps = event.values[0].toInt()
@@ -396,10 +575,16 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         }
     }
 
+    /**
+     * Método llamado cuando cambia la precisión de un sensor (no se utiliza en este caso).
+     */
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-        // Not used
+        // No se utiliza
     }
 
+    /**
+     * Método para solicitar permiso de reconocimiento de actividad al usuario.
+     */
     private fun requestSensorPermission() {
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -414,17 +599,26 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         }
     }
 
+    /**
+     * Método para calcular la distancia.
+     */
     private fun calculateDistance(steps: Int): Double {
-        // Assuming average step length of 0.60 meters
+        // Suponiendo una longitud de paso promedio de 0.60 metros
         val stepLength = 0.56
-        return steps * stepLength / 1000 // Convert to kilometers
+        return steps * stepLength / 1000 // Convertir los pasos a kilómetros
     }
 
-    private fun formatDistance(distance: Double): String {
+    /**
+     * Método para dar formato a la distancia.
+     */
+    private fun formatDistance(distance: Double): Double {
         val decimalFormat = DecimalFormat("#.###")
-        return decimalFormat.format(distance)
+        return decimalFormat.format(distance).toDouble()
     }
 
+    /**
+     * Método para dar formato al tiempo transcurrido.
+     */
     private fun formatElapsedTime(time: Long): String {
         val hours = (time / (1000 * 60 * 60)) % 24
         val minutes = (time / (1000 * 60)) % 60
@@ -432,861 +626,56 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
 
         return String.format("%02d:%02d:%02d", hours, minutes, seconds)
     }
-}
 
-/*import android.Manifest
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
-import android.location.Location
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import android.os.SystemClock
-import android.view.View
-import android.widget.Button
-import android.widget.Chronometer
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.Dash
-import com.google.android.gms.maps.model.Dot
-import com.google.android.gms.maps.model.Gap
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.Polyline
-import com.google.android.gms.maps.model.PolylineOptions
-import com.example.beerute_f01.Object.RuteObject
-import java.text.DecimalFormat
-
-class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener,
-    SensorEventListener {
-
-    private lateinit var createRouteButton: Button
-    private lateinit var exploreRouteButton: Button
-    private lateinit var clearRouteButton: Button
-
-    private lateinit var map: GoogleMap
-    private val ruteObject = RuteObject
-
-    private lateinit var sensorManager: SensorManager
-    private var stepSensor: Sensor? = null
-
-    private lateinit var linearStepCounter: LinearLayout
-    private lateinit var stepCountTextView: TextView
-    private lateinit var differenceTextView: TextView
-    private lateinit var distanceTextView: TextView
-    private lateinit var playButton: Button
-    private lateinit var timeTextView: TextView
-    private lateinit var chronometer: Chronometer
-
-    private val permissionRequestCode = 123
-    private var initialStepCount = 0
-    private var isChronometerRunning = false
-    private var elapsedTime: Long = 0
-
-    private var elapsedMillis: Long = 0
-
-    companion object {
-        const val REQUEST_CODE_LOCATION = 0
+    /**
+     * Método para dar formato al tiempo.
+     */
+    private fun formatTime(milliseconds: Double): String {
+        val sdf = SimpleDateFormat("HH:mm:ss")
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        val time = Date(milliseconds.toLong())
+        return sdf.format(time)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_create)
-        createMapFragment()
-        setupButtons()
-    }
+    /**
+     * Método para iniciar el bucle de actualización de ubicación.
+     */
+    private fun startLoop() {
+        isRunning = true
 
-    private fun setupButtons() {
-        createRouteButton = findViewById(R.id.createRouteButton)
-        exploreRouteButton = findViewById(R.id.exploreRouteButton)
-        clearRouteButton = findViewById(R.id.clearRouteButton)
+        handler.postDelayed(object : Runnable {
+            override fun run() {
+                // Aquí se realizan las operaciones o acciones deseadas en el bucle
 
-        linearStepCounter = findViewById(R.id.linearStepCounter)
-        stepCountTextView = findViewById(R.id.stepCountTextView)
-        differenceTextView = findViewById(R.id.differenceTextView)
-        distanceTextView = findViewById(R.id.distanceTextView)
-        playButton = findViewById(R.id.playButton)
-        timeTextView = findViewById(R.id.timeTextView)
-        chronometer = findViewById(R.id.chronometer)
+                startLocationUpdates()
+                // Test
+                //if (GlobalVariables.latitude == 0.0 || GlobalVariables.latitude != GlobalVariables.oldlatitude) {
+                    GlobalVariables.oldlatitude = GlobalVariables.latitude
+                    GlobalVariables.oldlongitude = GlobalVariables.longitude
 
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-
-        if (stepSensor == null) {
-            Toast.makeText(this, "El sensor de contador de pasos no está disponible en este dispositivo.", Toast.LENGTH_SHORT).show()
-        } else {
-            requestSensorPermission()
-        }
-
-        createRouteButton.setOnClickListener {
-            if (linearStepCounter.visibility == View.VISIBLE) {
-                // El LinearLayout está visible, lo ocultamos y cambiamos el texto del botón
-                linearStepCounter.visibility = View.GONE
-                createRouteButton.text = "Grabar Ruta"
-            } else {
-                // El LinearLayout está oculto, lo mostramos y cambiamos el texto del botón
-                linearStepCounter.visibility = View.VISIBLE
-                createRouteButton.text = "Eliminar Ruta"
-            }
-        }
-
-        exploreRouteButton.setOnClickListener {
-            val intent = Intent(this, ExploreActivity::class.java)
-            startActivity(intent)
-        }
-
-        clearRouteButton.setOnClickListener {
-            ruteObject.clearMatrix(this)
-            val intent = Intent(this, CreateActivity::class.java)
-            startActivity(intent)
-        }
-
-        playButton.setOnClickListener {
-            val currentStepCount = stepCountTextView.text.toString().toInt()
-            val difference = currentStepCount - initialStepCount
-            differenceTextView.text = "Pasos: $difference"
-
-            val distance = calculateDistance(difference)
-            distanceTextView.text = "   Distancia: ${formatDistance(distance)} km   "
-
-            if (isChronometerRunning) {
-                chronometer.stop()
-                elapsedTime = SystemClock.elapsedRealtime() - chronometer.base
-                timeTextView.text = "      Tiempo: " + formatElapsedTime(elapsedTime) + "      "
-                playButton.text = "Play"
-            } else {
-                chronometer.base = SystemClock.elapsedRealtime() - elapsedTime
-                chronometer.start()
-                chronometer.format = "%s"
-                timeTextView.text = "      Tiempo: " + formatElapsedTime(elapsedTime) + "      "
-                playButton.text = "Stop"
-            }
-
-            isChronometerRunning = !isChronometerRunning
-        }
-    }
-
-    private fun createMapFragment() {
-        val mapFragment : SupportMapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-    }
-
-    override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
-        createPolylines()
-        map.setOnMyLocationButtonClickListener(this)
-        map.setOnMyLocationClickListener(this)
-        enableLocation()
-    }
-
-    private fun createPolylines() {
-        val sm = ruteObject.getMatrix(this)
-        val l = sm?.get(0)?.size
-
-        val polylineOptions = PolylineOptions()
-        if (l != null) {
-            for (i in 0 until l) {
-                val latLng = LatLng(sm?.get(0)?.get(i) ?: 0.0, sm?.get(1)?.get(i) ?: 0.0)
-                polylineOptions.add(latLng)
-            }
-        } else {
-            Toast.makeText(this, "Se ha limpiado el mapa", Toast.LENGTH_LONG).show()
-            //error("La longitud del Array no puede ser nula")
-        }
-
-        polylineOptions.width(15f).color(ContextCompat.getColor(this, R.color.kotlin))
-
-        val polyline = map.addPolyline(polylineOptions)
-
-        val pattern = listOf(
-            Dot(), Gap(10F), Dash(50F), Gap(10F)
-        )
-        polyline.pattern = pattern
-
-        polyline.isClickable = true
-        map.setOnPolylineClickListener { polyline -> changeColor(polyline) }
-
-        val fc = LatLng(sm?.get(0)?.get(0) ?: 0.0, sm?.get(1)?.get(0) ?: 0.0)
-        map.animateCamera(CameraUpdateFactory.newLatLngZoom(fc, 17f), 3000, null)
-    }
-
-    private fun changeColor(polyline: Polyline) {
-        val color = (0..3).random()
-        val colorId = when(color) {
-            0 -> R.color.red
-            1 -> R.color.yellow
-            2 -> R.color.green
-            3 -> R.color.blue
-            else -> R.color.red
-        }
-        polyline.color = ContextCompat.getColor(this, colorId)
-    }
-
-    private fun isLocationPermissionGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun enableLocation() {
-        if (!::map.isInitialized) return
-        if (isLocationPermissionGranted()) {
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return
-            }
-            map.isMyLocationEnabled = true
-        } else {
-            requestLocationPermission()
-        }
-    }
-
-    private fun requestLocationPermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            Toast.makeText(this, "Ve a ajustes y acepta los permisos", Toast.LENGTH_LONG).show()
-        } else {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_CODE_LOCATION)
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == permissionRequestCode) {
-            if (grantResults.isNotEmpty()) {
-                when (requestCode) {
-                    REQUEST_CODE_LOCATION -> {
-                        if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                            map.isMyLocationEnabled = true
-                        } else {
-                            Toast.makeText(this, "Para activar la localización ve a ajustes y acepta los permisos", Toast.LENGTH_LONG).show()
-                        }
+                    if (GlobalVariables.latitude != 0.0) {
+                        latitudeArray.add(GlobalVariables.latitude)
+                        longitudeArray.add(GlobalVariables.longitude)
                     }
-                    // Agrega otros casos de acuerdo a tus necesidades
+                //}
+                if (isRunning) {
+                    handler.postDelayed(this, 500)// Repite el bucle después de 500 milisegundos
                 }
             }
-        }
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return
-        }
-
-        // Lógica adicional que necesites realizar después de obtener los permisos
-
-        if (stepSensor != null) {
-            sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_NORMAL)
-        } else {
-            Toast.makeText(this, "Permiso denegado. La función de contador de pasos no funcionará.", Toast.LENGTH_SHORT).show()
-        }
+        }, 1000) // Inicia el bucle después de 1 segundo
     }
 
-    /*override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return
-        }
-        when (requestCode) {
-            REQUEST_CODE_LOCATION -> if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                map.isMyLocationEnabled = true
-            } else {
-                Toast.makeText(this, "Para activar la localización ve a ajustes y acepta los permisos", Toast.LENGTH_LONG).show()
-            }
-        }
-    }*/
-
-    override fun onResumeFragments() {
-        super.onResumeFragments()
-        if (!::map.isInitialized) return
-        if (!isLocationPermissionGranted()) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {}
-            map.isMyLocationEnabled = false
-            Toast.makeText(this, "Para activar la localización ve a ajustes y acepta los permisos", Toast.LENGTH_LONG).show()
-        }
+    /**
+     * Método para detener el bucle de actualización de ubicación.
+     */
+    private fun stopLoop() {
+        isRunning = false
     }
 
-    override fun onMyLocationButtonClick(): Boolean {
-        Toast.makeText(this, "Botón pulsado", Toast.LENGTH_SHORT).show()
-        return false
-    }
-
-    override fun onMyLocationClick(p0: Location) {
-        Toast.makeText(this, "Estás en ${p0.latitude}, ${p0.longitude}", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun startChronometer() {
-        chronometer.base = SystemClock.elapsedRealtime() - elapsedMillis
-        chronometer.start()
-        playButton.text = "Stop"
-        isChronometerRunning = true
-    }
-
-    private fun stopChronometer() {
-        elapsedMillis = SystemClock.elapsedRealtime() - chronometer.base
-        chronometer.stop()
-        playButton.text = "Play"
-        isChronometerRunning = false
-        // Guardar el valor en una variable global
-        val elapsedSeconds = elapsedMillis / 1000
-        // Hacer algo con el valor guardado
-    }
-
-    //testActivity
-
-    override fun onResume() {
-        super.onResume()
-        if (stepSensor != null) {
-            sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (stepSensor != null) {
-            sensorManager.unregisterListener(this)
-        }
-    }
-
-    override fun onSensorChanged(event: SensorEvent) {
-        if (event.sensor.type == Sensor.TYPE_STEP_COUNTER) {
-            val steps = event.values[0].toInt()
-            stepCountTextView.text = steps.toString()
-
-            if (initialStepCount == 0) {
-                initialStepCount = steps
-            }
-        }
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-        // Not used
-    }
-
-    private fun requestSensorPermission() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACTIVITY_RECOGNITION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
-                permissionRequestCode
-            )
-        }
-    }
-
-    /*override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == permissionRequestCode) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted
-                // Register sensor listener
-                if (stepSensor != null) {
-                    sensorManager.registerListener(
-                        this,
-                        stepSensor,
-                        SensorManager.SENSOR_DELAY_NORMAL
-                    )
-                }
-            } else {
-                // Permission denied
-                Toast.makeText(
-                    this,
-                    "Permission denied. Step counter feature won't work.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    }*/
-
-    private fun calculateDistance(steps: Int): Double {
-        // Assuming average step length of 0.60 meters
-        val stepLength = 0.60
-        return steps * stepLength / 1000 // Convert to kilometers
-    }
-
-    private fun formatDistance(distance: Double): String {
-        val decimalFormat = DecimalFormat("#.###")
-        return decimalFormat.format(distance)
-    }
-
-    private fun formatElapsedTime(time: Long): String {
-        val hours = (time / (1000 * 60 * 60)) % 24
-        val minutes = (time / (1000 * 60)) % 60
-        val seconds = (time / 1000) % 60
-
-        return String.format("%02d:%02d:%02d", hours, minutes, seconds)
-    }
-}*/
-
-/*import android.Manifest
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorManager
-import android.location.Location
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import android.os.SystemClock
-import android.view.View
-import android.widget.Button
-import android.widget.Chronometer
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.Dash
-import com.google.android.gms.maps.model.Dot
-import com.google.android.gms.maps.model.Gap
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.Polyline
-import com.google.android.gms.maps.model.PolylineOptions
-import com.example.beerute_f01.Object.RuteObject
-
-class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener {
-
-    private lateinit var createRouteButton: Button
-    private lateinit var exploreRouteButton: Button
-    private lateinit var clearRouteButton: Button
-
-    private lateinit var map: GoogleMap
-    private val ruteObject = RuteObject
-
-    private lateinit var sensorManager: SensorManager
-    private var stepSensor: Sensor? = null
-
-    private lateinit var linearStepCounter: LinearLayout
-    private lateinit var stepCountTextView: TextView
-    private lateinit var differenceTextView: TextView
-    private lateinit var distanceTextView: TextView
-    private lateinit var playButton: Button
-    private lateinit var timeTextView: TextView
-    private lateinit var chronometer: Chronometer
-
-    private val permissionRequestCode = 123
-    private var initialStepCount = 0
-    private var isChronometerRunning = false
-    private var elapsedTime: Long = 0
-
-    private var elapsedMillis: Long = 0
-
-    companion object {
-        const val REQUEST_CODE_LOCATION = 0
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_create)
-        createMapFragment()
-        setupButtons()
-    }
-
-    private fun setupButtons() {
-        createRouteButton = findViewById(R.id.createRouteButton)
-        exploreRouteButton = findViewById(R.id.exploreRouteButton)
-        clearRouteButton = findViewById(R.id.clearRouteButton)
-
-        linearStepCounter = findViewById(R.id.linearStepCounter)
-
-        chronometer = findViewById(R.id.chronometer)
-        playButton = findViewById(R.id.playButton)
-
-        createRouteButton.setOnClickListener {
-            if (linearStepCounter.visibility == View.VISIBLE) {
-                // El LinearLayout está visible, lo ocultamos y cambiamos el texto del botón
-                linearStepCounter.visibility = View.GONE
-                createRouteButton.text = "Grabar Ruta"
-            } else {
-                // El LinearLayout está oculto, lo mostramos y cambiamos el texto del botón
-                linearStepCounter.visibility = View.VISIBLE
-                createRouteButton.text = "Eliminar Ruta"
-            }
-        }
-
-        exploreRouteButton.setOnClickListener {
-            val intent = Intent(this, ExploreActivity::class.java)
-            startActivity(intent)
-        }
-
-        clearRouteButton.setOnClickListener {
-            ruteObject.clearMatrix(this)
-            val intent = Intent(this, CreateActivity::class.java)
-            startActivity(intent)
-        }
-
-        playButton.setOnClickListener {
-            if (isChronometerRunning) {
-                stopChronometer()
-            } else {
-                startChronometer()
-            }
-        }
-    }
-
-    private fun createMapFragment() {
-        val mapFragment : SupportMapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-    }
-
-    override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
-        createPolylines()
-        map.setOnMyLocationButtonClickListener(this)
-        map.setOnMyLocationClickListener(this)
-        enableLocation()
-    }
-
-    private fun createPolylines() {
-        val sm = ruteObject.getMatrix(this)
-        val l = sm?.get(0)?.size
-
-        val polylineOptions = PolylineOptions()
-        if (l != null) {
-            for (i in 0 until l) {
-                val latLng = LatLng(sm?.get(0)?.get(i) ?: 0.0, sm?.get(1)?.get(i) ?: 0.0)
-                polylineOptions.add(latLng)
-            }
-        } else {
-            Toast.makeText(this, "Se ha limpiado el mapa", Toast.LENGTH_LONG).show()
-            //error("La longitud del Array no puede ser nula")
-        }
-
-        polylineOptions.width(15f).color(ContextCompat.getColor(this, R.color.kotlin))
-
-        val polyline = map.addPolyline(polylineOptions)
-
-        val pattern = listOf(
-            Dot(), Gap(10F), Dash(50F), Gap(10F)
-        )
-        polyline.pattern = pattern
-
-        polyline.isClickable = true
-        map.setOnPolylineClickListener { polyline -> changeColor(polyline) }
-
-        val fc = LatLng(sm?.get(0)?.get(0) ?: 0.0, sm?.get(1)?.get(0) ?: 0.0)
-        map.animateCamera(CameraUpdateFactory.newLatLngZoom(fc, 17f), 3000, null)
-    }
-
-    private fun changeColor(polyline: Polyline) {
-        val color = (0..3).random()
-        val colorId = when(color) {
-            0 -> R.color.red
-            1 -> R.color.yellow
-            2 -> R.color.green
-            3 -> R.color.blue
-            else -> R.color.red
-        }
-        polyline.color = ContextCompat.getColor(this, colorId)
-    }
-
-    private fun isLocationPermissionGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun enableLocation() {
-        if (!::map.isInitialized) return
-        if (isLocationPermissionGranted()) {
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return
-            }
-            map.isMyLocationEnabled = true
-        } else {
-            requestLocationPermission()
-        }
-    }
-
-    private fun requestLocationPermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            Toast.makeText(this, "Ve a ajustes y acepta los permisos", Toast.LENGTH_LONG).show()
-        } else {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_CODE_LOCATION)
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return
-        }
-        when (requestCode) {
-            REQUEST_CODE_LOCATION -> if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                map.isMyLocationEnabled = true
-            } else {
-                Toast.makeText(this, "Para activar la localización ve a ajustes y acepta los permisos", Toast.LENGTH_LONG).show()
-            }
-            else -> {}
-        }
-    }
-
-    override fun onResumeFragments() {
-        super.onResumeFragments()
-        if (!::map.isInitialized) return
-        if (!isLocationPermissionGranted()) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {}
-            map.isMyLocationEnabled = false
-            Toast.makeText(this, "Para activar la localización ve a ajustes y acepta los permisos", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    override fun onMyLocationButtonClick(): Boolean {
-        Toast.makeText(this, "Botón pulsado", Toast.LENGTH_SHORT).show()
-        return false
-    }
-
-    override fun onMyLocationClick(p0: Location) {
-        Toast.makeText(this, "Estás en ${p0.latitude}, ${p0.longitude}", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun startChronometer() {
-        chronometer.base = SystemClock.elapsedRealtime() - elapsedMillis
-        chronometer.start()
-        playButton.text = "Stop"
-        isChronometerRunning = true
-    }
-
-    private fun stopChronometer() {
-        elapsedMillis = SystemClock.elapsedRealtime() - chronometer.base
-        chronometer.stop()
-        playButton.text = "Play"
-        isChronometerRunning = false
-        // Guardar el valor en una variable global
-        val elapsedSeconds = elapsedMillis / 1000
-        // Hacer algo con el valor guardado
-    }
-}*/
-
-/*import android.Manifest
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.location.Location
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import android.widget.Button
-import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.Dash
-import com.google.android.gms.maps.model.Dot
-import com.google.android.gms.maps.model.Gap
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.Polyline
-import com.google.android.gms.maps.model.PolylineOptions
-
-import com.example.beerute_f01.Object.RuteObject
-
-class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener {
-
-    private val ro = RuteObject
-
-    lateinit var createRouteButton: Button
-    lateinit var createdRouteButton: Button
-    lateinit var clearRouteButton: Button
-
-    private lateinit var map:GoogleMap
-
-    companion object {
-        const val REQUEST_CODE_LOCATION = 0
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_create)
-        createMapFragment()
-
-        //Setup
-        setup()
-    }
-
-    private fun setup() {
-
-        createRouteButton = findViewById(R.id.createRouteButton)
-        createdRouteButton = findViewById(R.id.createdRouteButton)
-        clearRouteButton = findViewById(R.id.clearRouteButton)
-
-        createRouteButton.setOnClickListener {
-        }
-
-        createdRouteButton.setOnClickListener {
-
-            val cIntent = Intent(this, CreatedActivity::class.java)
-            startActivity(cIntent)
-        }
-
-        clearRouteButton.setOnClickListener {
-
-            RuteObject.clearMatrix(this)
-
-            val clIntent = Intent(this, CreateActivity::class.java)
-            startActivity(clIntent)
-        }
-    }
-
-    private fun createMapFragment() {
-        val mapFragment : SupportMapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-    }
-
-    override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
-        //createMarker()
-        createPolylines()
-        map.setOnMyLocationButtonClickListener (this)
-        map.setOnMyLocationClickListener (this)
-        enableLocation()
-    }
-
-    fun createPolylines(){
-
-        val sm = ro.getMatrix(this)
-
-        // Primera Coordenada
-        val fc = LatLng(sm?.get(0)?.get(0)?: 0.0, sm?.get(1)?.get(0)?: 0.0)
-
-        val l = sm?.get(0)?.size
-
-        val polylineOptions = PolylineOptions()
-
-        if (l != null) {
-            // Recorrer la matriz de latitudes y longitudes
-            for (i in 0 until l) {
-                val latLng = LatLng(sm?.get(0)?.get(i) ?: 0.0, sm?.get(1)?.get(i) ?: 0.0)
-                polylineOptions.add(latLng)
-            }
-        } else
-            // Condición no cumplida, se lanza un mensaje de error
-            error("La longitud del Array no puede ser nula")
-
-        polylineOptions.width(15f).color(ContextCompat.getColor(this, R.color.kotlin))
-
-        // Crear una polilínea en el mapa con las opciones configuradas
-        val polyline = map.addPolyline(polylineOptions)
-
-        //polyline.startCap = RoundCap()
-        //polyline.endCap = CustomCap(BitmapDescriptorFactory.fromResource(R.drawable.red_point))
-
-        val pattern = listOf(
-            Dot(), Gap(10F), Dash(50F), Gap(10F)
-        )
-        polyline.pattern = pattern
-
-        polyline.isClickable = true
-        map.setOnPolylineClickListener { polyline -> changeColor(polyline) }
-
-        map.animateCamera(
-            CameraUpdateFactory.newLatLngZoom(fc, 17f),
-            3000,
-            null
-        )
-    }
-
-    fun changeColor(polyline: Polyline){
-        val color = (0..3).random()
-        when(color){
-            0 -> polyline.color = ContextCompat.getColor(this, R.color.red)
-            1 -> polyline.color = ContextCompat.getColor(this, R.color.yellow)
-            2 -> polyline.color = ContextCompat.getColor(this, R.color.green)
-            3 -> polyline.color = ContextCompat.getColor(this, R.color.blue)
-        }
-    }
-
-    private fun createMarker() {
-        val coordinates = LatLng(17.63088777893707, -101.54671998557623)
-        val marker : MarkerOptions = MarkerOptions().position(coordinates).title("Zihuatanejo")
-        map.addMarker(marker)
-        map.animateCamera(
-            CameraUpdateFactory.newLatLngZoom(coordinates, 18f),
-            4000,
-            null
-        )
-    }
-
-    private fun isLocationPermissionGranted (): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun enableLocation (){
-        if(!::map.isInitialized) return
-        if(isLocationPermissionGranted()){
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                return
-            }
-            map.isMyLocationEnabled = true
-        } else{
-            requestLocationPermission()
-        }
-    }
-
-    private fun requestLocationPermission (){
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)){
-            Toast.makeText(this, "Ve a ajustes y acepta los permisos", Toast.LENGTH_LONG).show()
-        } else{
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_CODE_LOCATION)
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    /**
+     * Método para iniciar las actualizaciones de ubicación.
+     */
+    private fun startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -1297,38 +686,36 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
         ) {
             return
         }
-        when (requestCode) {
-            REQUEST_CODE_LOCATION -> if (grantResults.isNotEmpty() && grantResults[0]==PackageManager.PERMISSION_GRANTED) {
-                map.isMyLocationEnabled = true
-            } else {
-                Toast.makeText(this, "Para activar la localización ve a ajustes y acepta los permisos", Toast.LENGTH_LONG).show()
-            } else -> {}
-        }
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                // Obtener la ubicación actual si está disponible
+                location?.let {
+                    val latitude = location.latitude
+                    GlobalVariables.latitude = latitude
+
+                    val longitude = location.longitude
+                    GlobalVariables.longitude = longitude
+                }
+            }
     }
 
-    override fun onResumeFragments() {
-        super.onResumeFragments()
-        if(!::map.isInitialized) return
-        if (!isLocationPermissionGranted()){
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {}
-            map.isMyLocationEnabled = false
-            Toast.makeText(this, "Para activar la localización ve a ajustes y acepta los permisos", Toast.LENGTH_LONG).show()
-        }
+    private fun clearGlobalVariables() {
+        GlobalVariables.selectedRouteId = ""
+        GlobalVariables.selectedPlace = ""
+        GlobalVariables.selectedSteps = 0
+        GlobalVariables.selectedKm = 0.0
+        GlobalVariables.selectedTime = 0.0
+        GlobalVariables.selectedUser = ""
+        GlobalVariables.selectedBestUser = ""
     }
 
-    override fun onMyLocationButtonClick(): Boolean {
-        Toast.makeText(this, "Botón pulsado", Toast.LENGTH_SHORT).show()
-        return false
+    /**
+     * Método llamado cuando se presiona el botón de retroceso.
+     * Obliga a la clase a volver a la clase MainActivity.
+     */
+    override fun onBackPressed() {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
     }
-
-    override fun onMyLocationClick(p0: Location) {
-        Toast.makeText(this, "Estás en ${p0.latitude}, ${p0.longitude}", Toast.LENGTH_SHORT).show()
-    }
-}*/
+}

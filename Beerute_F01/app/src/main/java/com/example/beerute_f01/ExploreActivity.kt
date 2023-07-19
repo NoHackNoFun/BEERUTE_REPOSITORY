@@ -1,6 +1,5 @@
 package com.example.beerute_f01
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -92,12 +91,13 @@ class ExploreActivity : AppCompatActivity() {
                 for (document in result) {
                     val routeId = document.id
                     val place = document.getString("place") ?: ""
+                    val steps = document.getDouble("steps") ?: 0.0
                     val km = document.getDouble("km") ?: 0.0
                     val time = document.getDouble("time") ?: 0.0
                     val user = document.getString("user") ?: ""
                     val bestUser = document.getString("bestuser") ?: ""
 
-                    val route = Route(routeId, place, km, time, user, bestUser)
+                    val route = Route(routeId, place, steps, km, time, user, bestUser)
                     routesList.add(route)
                 }
 
@@ -130,12 +130,12 @@ class ExploreActivity : AppCompatActivity() {
     // Función de callback al hacer clic en una ruta
     private fun onRouteClick(route: Route) {
         val db = FirebaseFirestore.getInstance()
-        val dr_db: DocumentReference = db.collection("routes").document("0000001")
         val ro = RuteObject
 
         // Asigna los valores de la ruta seleccionada a las variables globales
         GlobalVariables.selectedRouteId = route.documentId
         GlobalVariables.selectedPlace = route.place
+        GlobalVariables.selectedSteps = route.steps.toInt()
         GlobalVariables.selectedKm = route.km
         GlobalVariables.selectedTime = route.time
         GlobalVariables.selectedUser = route.user
@@ -188,152 +188,17 @@ class ExploreActivity : AppCompatActivity() {
                 val cIntent = Intent(this, CreateActivity::class.java)
                 startActivity(cIntent)
             }
-
         }.addOnFailureListener {
 
             // Maneja el error en caso de fallo en la recuperación de datos
             Toast.makeText(this, "Error al manejar la Base de Datos", Toast.LENGTH_SHORT).show()
         }
-
         // Implementa la lógica adicional que deseas realizar al hacer clic en una ruta
     }
 
+    override fun onBackPressed() {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
 }
-
-/*import android.annotation.SuppressLint
-import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
-import android.widget.Toast
-import android.widget.EditText
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.firestore.FirebaseFirestore
-
-class ExploreActivity : AppCompatActivity() {
-
-    private lateinit var routeAdapter: RouteAdapter
-    private var routes: List<Route> = emptyList()
-
-    private lateinit var firestore: FirebaseFirestore
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_explore)
-
-        // Configurar FirebaseFirestore
-        firestore = FirebaseFirestore.getInstance()
-
-        // Configurar RecyclerView y Adapter
-        val recyclerView: RecyclerView = findViewById(R.id.recyclerView)
-        routeAdapter = RouteAdapter(routes) { route -> onRouteClick(route) }
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = routeAdapter
-
-        // Configurar el filtro de búsqueda
-        val searchEditText: EditText = findViewById(R.id.searchEditText)
-        searchEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // No se requiere implementación
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Aplicar el filtro de búsqueda al cambiar el texto en el EditText
-                val query = s.toString().trim()
-                filterRoutes(query)
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                // No se requiere implementación
-            }
-        })
-
-        // Obtener las rutas de la base de datos y actualizar el adaptador
-        fetchRoutesFromFirestore()
-    }
-
-    // Función para obtener las rutas de la base de datos de Firestore
-    private fun fetchRoutesFromFirestore() {
-        val db = FirebaseFirestore.getInstance()
-        val routesCollection = db.collection("routes")
-
-        routesCollection.get()
-            .addOnSuccessListener { result ->
-                val routesList = mutableListOf<Route>()
-                for (document in result) {
-                    val routeId = document.id
-                    val place = document.getString("place") ?: ""
-                    val km = document.getDouble("km") ?: 0.0
-                    val time = document.getDouble("time") ?: 0.0
-                    val user = document.getString("user") ?: ""
-                    val bestUser = document.getString("bestuser") ?: ""
-
-                    val route = Route(routeId, place, km, time, user, bestUser)
-                    routesList.add(route)
-                }
-
-                routes = routesList
-                routeAdapter.updateRoutes(routes)
-            }
-            .addOnFailureListener { exception ->
-                // Manejar el error en caso de que falle la obtención de rutas
-            }
-    }
-
-    // Función de filtrado de rutas por ID de ruta o lugar
-    private fun filterRoutes(query: String) {
-        val filteredRoutes = if (query.isNotEmpty()) {
-            routes.filter { route ->
-                route.documentId.contains(query, ignoreCase = true) || route.place.contains(
-                    query,
-                    ignoreCase = true
-                )
-            }
-        } else {
-            routes
-        }
-        routeAdapter.updateRoutes(filteredRoutes)
-    }
-
-    // Función de callback al hacer clic en una ruta
-    private fun onRouteClick(route: Route) {
-        // Implementa la lógica al hacer clic en una ruta
-    }
-}*/
-
-/*import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-
-class ExploreActivity : AppCompatActivity() {
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var routeAdapter: RouteAdapter
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_explore)
-
-        recyclerView = findViewById(R.id.recyclerView)
-        routeAdapter = RouteAdapter(emptyList()) { route ->
-            // Acción a realizar cuando se hace clic en una ruta
-            // Puedes agregar aquí la lógica que deseas realizar al hacer clic en una ruta
-        }
-
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = routeAdapter
-
-        Route.getAllRoutes(
-            onSuccess = { routes ->
-                routeAdapter.updateRoutes(routes)
-            },
-            onFailure = { exception ->
-                // Manejar el error
-            }
-        )
-    }
-}*/

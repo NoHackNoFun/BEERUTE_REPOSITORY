@@ -1,6 +1,7 @@
 package com.example.beerute_f01
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
@@ -12,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
@@ -38,13 +38,14 @@ class IAHelpActivity : AppCompatActivity() {
         messageEditText = findViewById(R.id.message_edit_text)
         sendButton = findViewById(R.id.send_btn)
 
-        // setup recycler view
+        // Configurar RecyclerView y Adapter
         messageAdapter = MessageAdapter(messageList)
         recyclerView.adapter = messageAdapter
         val llm = LinearLayoutManager(this)
         llm.stackFromEnd = true
         recyclerView.layoutManager = llm
 
+        // Configurar el botón de enviar
         sendButton.setOnClickListener {
             val question = messageEditText.text.toString().trim()
             addToChat(question, Message.SENT_BY_ME)
@@ -54,6 +55,7 @@ class IAHelpActivity : AppCompatActivity() {
         }
     }
 
+    // Agregar un mensaje al chat
     @SuppressLint("NotifyDataSetChanged")
     private fun addToChat(message: String, sentBy: String) {
         runOnUiThread {
@@ -63,6 +65,7 @@ class IAHelpActivity : AppCompatActivity() {
         }
     }
 
+    // Agregar la respuesta del bot al chat
     private fun addResponse(response: String) {
         runOnUiThread {
             messageList.removeAt(messageList.size - 1)
@@ -70,8 +73,9 @@ class IAHelpActivity : AppCompatActivity() {
         }
     }
 
+    // Llamar a la API para obtener la respuesta del bot
     private fun callAPI(question: String) {
-        // okhttp
+        // Configurar la solicitud HTTP utilizando OkHttp
         addToChat("Escribiendo... ", Message.SENT_BY_BOT)
 
         val jsonBody = JSONObject()
@@ -92,6 +96,7 @@ class IAHelpActivity : AppCompatActivity() {
             .post(body)
             .build()
 
+        // Realizar la solicitud HTTP asincrónicamente
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 addResponse("Error al cargar la respuesta debido a " + e.message)
@@ -114,5 +119,11 @@ class IAHelpActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    override fun onBackPressed() {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 }

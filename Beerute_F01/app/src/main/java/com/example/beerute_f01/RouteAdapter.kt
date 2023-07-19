@@ -47,6 +47,7 @@ class RouteAdapter(
     inner class RouteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val idTextView: TextView = itemView.findViewById(R.id.idTextView)
         private val placeTextView: TextView = itemView.findViewById(R.id.placeTextView)
+        private val stepsTextView: TextView = itemView.findViewById(R.id.stepsTextView)
         private val kmTextView: TextView = itemView.findViewById(R.id.kmTextView)
         private val timeTextView: TextView = itemView.findViewById(R.id.timeTextView)
         private val userTextView: TextView = itemView.findViewById(R.id.userTextView)
@@ -57,8 +58,9 @@ class RouteAdapter(
         fun bind(route: Route) {
             idTextView.text = "ID de la Ruta: ${route.documentId}"
             placeTextView.text = "Lugar: ${route.place}"
+            stepsTextView.text = "Pasos: ${route.steps.toString()}"
             kmTextView.text = "Distancia: ${route.km.toString()} km"
-            timeTextView.text = "Marca de Tiempo: ${route.time.toString()} h"
+            timeTextView.text = "Marca de Tiempo: ${route.time}"
             userTextView.text = "Creador: ${route.user}"
             bestUserTextView.text = "RECORD: ${route.bestUser}"
         }

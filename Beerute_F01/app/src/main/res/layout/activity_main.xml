@@ -69,15 +69,6 @@
                 android:textColor="@color/white" />
 
             <Button
-                android:id="@+id/dbButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/Blue_Firebase"
-                android:text="Base de Datos"
-                android:textColor="@color/white" />
-
-            <Button
                 android:id="@+id/testButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -96,12 +87,12 @@
                 android:textColor="@color/white" />
 
             <Button
-                android:id="@+id/stepButton"
+                android:id="@+id/logicRouteButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="@color/black"
-                android:text="Step Counter"
+                android:text="Logic Route"
                 android:textColor="@color/white" />
 
             <Space

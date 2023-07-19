@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
@@ -17,6 +18,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppTheme"
         tools:targetApi="31">
+
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -43,35 +52,16 @@
             android:exported="false" />
 
         <activity
-            android:name=".DBActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".testActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".StepCounter.StepCounterMain"
-            android:exported="false" />
-
-        <activity
-            android:name=".StepCounter.StepsCounterActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".StepCounter.CustomAlgoResultsActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".StepCounter.StepsHistoryActivity"
             android:exported="false" />
 
         <activity
             android:name=".NewStepCounterActivity"
             android:exported="false" />
 
-        <service android:name=".StepCounter.StepsTrackerService" />
-        <service android:name=".StepCounter.StepsService" />
+        <activity
+            android:name=".LogicRouteActivity"
+            android:exported="false" />
 
         <activity
             android:name=".ProfileActivity"
@@ -83,7 +73,6 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

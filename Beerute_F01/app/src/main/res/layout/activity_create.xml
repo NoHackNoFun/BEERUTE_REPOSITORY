@@ -102,6 +102,14 @@
                                 android:layout_height="8dp" />
 
                             <TextView
+                                android:id="@+id/placeTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="16sp"
+                                android:visibility="gone"/>
+
+                            <TextView
                                 android:id="@+id/stepCountTextView"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -146,13 +154,22 @@
                                 android:textColor="@color/white" />
 
                             <Button
+                                android:id="@+id/ePlayButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:backgroundTint="@color/Orange_700_Firebase"
+                                android:text="Superar Record"
+                                android:textColor="@color/white"
+                                android:visibility="gone" />
+
+                            <Button
                                 android:id="@+id/readyButton"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:backgroundTint="@color/Orange_700001_Firebase"
                                 android:text="Listo"
                                 android:textColor="@color/white"
-                                android:visibility="gone"/>
+                                android:visibility="gone" />
 
                             <EditText
                                 android:id="@+id/savePlaceEditText"
