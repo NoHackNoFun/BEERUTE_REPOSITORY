@@ -1,0 +1,925 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".RankingActivity">
+
+    <!-- CardView en la parte superior -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/firstCardView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardElevation="4dp"
+        app:cardCornerRadius="8dp"
+        app:cardBackgroundColor="#FFFFFF"
+        android:layout_marginBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <!-- Nombre del usuario -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/usernameTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nombre del Usuario"
+                    android:textColor="#000"
+                    android:textSize="18sp" />
+
+                <!-- Leyenda debajo de la imagen -->
+                <TextView
+                    android:id="@+id/userLegendTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:text="Leyenda del Usuario"
+                    android:textColor="#666"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- Espacio entre el nombre y la imagen -->
+            <Space
+                android:layout_width="16dp"
+                android:layout_height="match_parent" />
+
+            <!-- Imagen del usuario -->
+            <ImageView
+                android:id="@+id/userImageView"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:scaleType="centerCrop"
+                android:contentDescription="Medalla del Usuario" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background= "@color/Orange_700001_Firebase"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+    />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="12dp" />
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- ScrollView que contiene los siguientes 10 CardView -->
+        <ScrollView
+            android:id="@+id/scrollView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/firstCardView">
+
+            <LinearLayout
+                android:id="@+id/rankingContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- CardView 0 -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardView0"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <!-- Imagen de la posicion -->
+                            <ImageView
+                                android:id="@+id/position0ImageView"
+                                android:layout_width="60dp"
+                                android:layout_height="48dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/p01" />
+
+                            <Space
+                                android:layout_width="32dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Imagen del usuario -->
+                            <ImageView
+                                android:id="@+id/user0ImageView"
+                                android:layout_width="50dp"
+                                android:layout_height="48dp"
+                                android:contentDescription="Medalla del Usuario"
+                                android:scaleType="centerCrop" />
+
+                            <Space
+                                android:layout_width="16dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Leyenda debajo de la imagen -->
+                            <TextView
+                                android:id="@+id/userLegend0TextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:text="Medalla del Usuario"
+                                android:textColor="#666"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="10dp"
+                            android:layout_weight="1" />
+
+                        <!-- Nombre del usuario -->
+                        <TextView
+                            android:id="@+id/username0TextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nombre del Usuario"
+                            android:textColor="#000"
+                            android:textSize="18sp" />
+
+                        <!-- Kilómetros recorridos por el usuario -->
+                        <TextView
+                            android:id="@+id/kmmax0TextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Kilómetros" />
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- Repetir este bloque para CardView 1 a CardView 9 cambiando los IDs -->
+
+                <!-- CardView 1 -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardView1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <!-- Imagen de la posicion -->
+                            <ImageView
+                                android:id="@+id/position1ImageView"
+                                android:layout_width="60dp"
+                                android:layout_height="48dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/p02" />
+
+                            <Space
+                                android:layout_width="32dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Imagen del usuario -->
+                            <ImageView
+                                android:id="@+id/user1ImageView"
+                                android:layout_width="50dp"
+                                android:layout_height="48dp"
+                                android:contentDescription="Medalla del Usuario"
+                                android:scaleType="centerCrop" />
+
+                            <Space
+                                android:layout_width="16dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Leyenda debajo de la imagen -->
+                            <TextView
+                                android:id="@+id/userLegend1TextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:text="Medalla del Usuario"
+                                android:textColor="#666"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="10dp"
+                            android:layout_weight="1" />
+
+                        <!-- Nombre del usuario -->
+                        <TextView
+                            android:id="@+id/username1TextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nombre del Usuario"
+                            android:textColor="#000"
+                            android:textSize="18sp" />
+
+                        <!-- Kilómetros recorridos por el usuario -->
+                        <TextView
+                            android:id="@+id/kmmax1TextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Kilómetros" />
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- CardView 2 -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardView2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <!-- Imagen de la posicion -->
+                            <ImageView
+                                android:id="@+id/position2ImageView"
+                                android:layout_width="60dp"
+                                android:layout_height="48dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/p03" />
+
+                            <Space
+                                android:layout_width="32dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Imagen del usuario -->
+                            <ImageView
+                                android:id="@+id/user2ImageView"
+                                android:layout_width="50dp"
+                                android:layout_height="48dp"
+                                android:contentDescription="Medalla del Usuario"
+                                android:scaleType="centerCrop" />
+
+                            <Space
+                                android:layout_width="16dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Leyenda debajo de la imagen -->
+                            <TextView
+                                android:id="@+id/userLegend2TextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:text="Medalla del Usuario"
+                                android:textColor="#666"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="10dp"
+                            android:layout_weight="1" />
+
+                        <!-- Nombre del usuario -->
+                        <TextView
+                            android:id="@+id/username2TextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nombre del Usuario"
+                            android:textColor="#000"
+                            android:textSize="18sp" />
+
+                        <!-- Kilómetros recorridos por el usuario -->
+                        <TextView
+                            android:id="@+id/kmmax2TextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Kilómetros" />
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- CardView 3 -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardView3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <!-- Imagen de la posicion -->
+                            <ImageView
+                                android:id="@+id/position3ImageView"
+                                android:layout_width="60dp"
+                                android:layout_height="48dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/p04" />
+
+                            <Space
+                                android:layout_width="32dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Imagen del usuario -->
+                            <ImageView
+                                android:id="@+id/user3ImageView"
+                                android:layout_width="50dp"
+                                android:layout_height="48dp"
+                                android:contentDescription="Medalla del Usuario"
+                                android:scaleType="centerCrop" />
+
+                            <Space
+                                android:layout_width="16dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Leyenda debajo de la imagen -->
+                            <TextView
+                                android:id="@+id/userLegend3TextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:text="Medalla del Usuario"
+                                android:textColor="#666"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="10dp"
+                            android:layout_weight="1" />
+
+                        <!-- Nombre del usuario -->
+                        <TextView
+                            android:id="@+id/username3TextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nombre del Usuario"
+                            android:textColor="#000"
+                            android:textSize="18sp" />
+
+                        <!-- Kilómetros recorridos por el usuario -->
+                        <TextView
+                            android:id="@+id/kmmax3TextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Kilómetros" />
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- CardView 4 -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardView4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <!-- Imagen de la posicion -->
+                            <ImageView
+                                android:id="@+id/position4ImageView"
+                                android:layout_width="60dp"
+                                android:layout_height="48dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/p05" />
+
+                            <Space
+                                android:layout_width="32dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Imagen del usuario -->
+                            <ImageView
+                                android:id="@+id/user4ImageView"
+                                android:layout_width="50dp"
+                                android:layout_height="48dp"
+                                android:contentDescription="Medalla del Usuario"
+                                android:scaleType="centerCrop" />
+
+                            <Space
+                                android:layout_width="16dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Leyenda debajo de la imagen -->
+                            <TextView
+                                android:id="@+id/userLegend4TextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:text="Medalla del Usuario"
+                                android:textColor="#666"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="10dp"
+                            android:layout_weight="1" />
+
+                        <!-- Nombre del usuario -->
+                        <TextView
+                            android:id="@+id/username4TextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nombre del Usuario"
+                            android:textColor="#000"
+                            android:textSize="18sp" />
+
+                        <!-- Kilómetros recorridos por el usuario -->
+                        <TextView
+                            android:id="@+id/kmmax4TextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Kilómetros" />
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- CardView 5 -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardView5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <!-- Imagen de la posicion -->
+                            <ImageView
+                                android:id="@+id/position5ImageView"
+                                android:layout_width="60dp"
+                                android:layout_height="48dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/p06" />
+
+                            <Space
+                                android:layout_width="32dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Imagen del usuario -->
+                            <ImageView
+                                android:id="@+id/user5ImageView"
+                                android:layout_width="50dp"
+                                android:layout_height="48dp"
+                                android:contentDescription="Medalla del Usuario"
+                                android:scaleType="centerCrop" />
+
+                            <Space
+                                android:layout_width="16dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Leyenda debajo de la imagen -->
+                            <TextView
+                                android:id="@+id/userLegend5TextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:text="Medalla del Usuario"
+                                android:textColor="#666"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="10dp"
+                            android:layout_weight="1" />
+
+                        <!-- Nombre del usuario -->
+                        <TextView
+                            android:id="@+id/username5TextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nombre del Usuario"
+                            android:textColor="#000"
+                            android:textSize="18sp" />
+
+                        <!-- Kilómetros recorridos por el usuario -->
+                        <TextView
+                            android:id="@+id/kmmax5TextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Kilómetros" />
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- CardView 6 -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardView6"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <!-- Imagen de la posicion -->
+                            <ImageView
+                                android:id="@+id/position6ImageView"
+                                android:layout_width="60dp"
+                                android:layout_height="48dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/p07" />
+
+                            <!-- Imagen del usuario -->
+                            <Space
+                                android:layout_width="32dp"
+                                android:layout_height="match_parent" />
+
+                            <ImageView
+                                android:id="@+id/user6ImageView"
+                                android:layout_width="50dp"
+                                android:layout_height="48dp"
+                                android:contentDescription="Medalla del Usuario"
+                                android:scaleType="centerCrop" />
+
+                            <Space
+                                android:layout_width="16dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Leyenda debajo de la imagen -->
+                            <TextView
+                                android:id="@+id/userLegend6TextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:text="Medalla del Usuario"
+                                android:textColor="#666"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="10dp"
+                            android:layout_weight="1" />
+
+                        <!-- Nombre del usuario -->
+                        <TextView
+                            android:id="@+id/username6TextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nombre del Usuario"
+                            android:textColor="#000"
+                            android:textSize="18sp" />
+
+                        <!-- Kilómetros recorridos por el usuario -->
+                        <TextView
+                            android:id="@+id/kmmax6TextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Kilómetros" />
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- CardView 7 -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardView7"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <!-- Imagen de la posicion -->
+                            <ImageView
+                                android:id="@+id/position7ImageView"
+                                android:layout_width="60dp"
+                                android:layout_height="48dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/p08" />
+
+                            <Space
+                                android:layout_width="32dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Imagen del usuario -->
+                            <ImageView
+                                android:id="@+id/user7ImageView"
+                                android:layout_width="50dp"
+                                android:layout_height="48dp"
+                                android:contentDescription="Medalla del Usuario"
+                                android:scaleType="centerCrop" />
+
+                            <Space
+                                android:layout_width="16dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Leyenda debajo de la imagen -->
+                            <TextView
+                                android:id="@+id/userLegend7TextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:text="Medalla del Usuario"
+                                android:textColor="#666"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="10dp"
+                            android:layout_weight="1" />
+
+                        <!-- Nombre del usuario -->
+                        <TextView
+                            android:id="@+id/username7TextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nombre del Usuario"
+                            android:textColor="#000"
+                            android:textSize="18sp" />
+
+                        <!-- Kilómetros recorridos por el usuario -->
+                        <TextView
+                            android:id="@+id/kmmax7TextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Kilómetros" />
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- CardView 8 -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardView8"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <!-- Imagen de la posicion -->
+                            <ImageView
+                                android:id="@+id/position8ImageView"
+                                android:layout_width="60dp"
+                                android:layout_height="48dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/p09" />
+
+                            <Space
+                                android:layout_width="32dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Imagen del usuario -->
+                            <ImageView
+                                android:id="@+id/user8ImageView"
+                                android:layout_width="50dp"
+                                android:layout_height="48dp"
+                                android:contentDescription="Medalla del Usuario"
+                                android:scaleType="centerCrop" />
+
+                            <Space
+                                android:layout_width="16dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Leyenda debajo de la imagen -->
+                            <TextView
+                                android:id="@+id/userLegend8TextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:text="Medalla del Usuario"
+                                android:textColor="#666"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="10dp"
+                            android:layout_weight="1" />
+
+                        <!-- Nombre del usuario -->
+                        <TextView
+                            android:id="@+id/username8TextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nombre del Usuario"
+                            android:textColor="#000"
+                            android:textSize="18sp" />
+
+                        <!-- Kilómetros recorridos por el usuario -->
+                        <TextView
+                            android:id="@+id/kmmax8TextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Kilómetros" />
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- CardView 9 -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardView9"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <!-- Imagen de la posicion -->
+                            <ImageView
+                                android:id="@+id/position9ImageView"
+                                android:layout_width="80dp"
+                                android:layout_height="48dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/p10" />
+
+                            <Space
+                                android:layout_width="32dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Imagen del usuario -->
+                            <ImageView
+                                android:id="@+id/user9ImageView"
+                                android:layout_width="50dp"
+                                android:layout_height="48dp"
+                                android:contentDescription="Medalla del Usuario"
+                                android:scaleType="centerCrop" />
+
+                            <Space
+                                android:layout_width="16dp"
+                                android:layout_height="match_parent" />
+
+                            <!-- Leyenda debajo de la imagen -->
+                            <TextView
+                                android:id="@+id/userLegend9TextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:text="Medalla del Usuario"
+                                android:textColor="#666"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="10dp"
+                            android:layout_weight="1" />
+
+                        <!-- Nombre del usuario -->
+                        <TextView
+                            android:id="@+id/username9TextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nombre del Usuario"
+                            android:textColor="#000"
+                            android:textSize="18sp" />
+
+                        <!-- Kilómetros recorridos por el usuario -->
+                        <TextView
+                            android:id="@+id/kmmax9TextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Kilómetros" />
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+        </ScrollView>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</LinearLayout>

@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.beerute_f01.Object.GlobalVariables
 import com.example.beerute_f01.Object.RuteObject
-import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 
 class ExploreActivity : AppCompatActivity() {
@@ -167,9 +166,7 @@ class ExploreActivity : AppCompatActivity() {
                 var pos_lon = 0.0
 
                 if (lgth_lst != null && lon_lst != null && lat_lst != null) {
-
                     if (pos_lat != null && pos_lon != null) {
-
                         for (j in 0 until i) {
 
                             pos_lat = lat_lst.get(j) as Double
@@ -197,6 +194,7 @@ class ExploreActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
+        super.onBackPressed()
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()

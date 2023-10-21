@@ -46,8 +46,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:backgroundTint="@color/Orange_700_Firebase"
+                android:backgroundTint="@color/Orange_7001_Firebase"
                 android:text="Crear Ruta"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/rankingButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/Orange_7002_Firebase"
+                android:text="Ranking"
                 android:textColor="@color/white" />
 
             <Button
@@ -66,33 +75,6 @@
                 android:layout_weight="1"
                 android:backgroundTint="@color/Orange_700001_Firebase"
                 android:text="Usuario"
-                android:textColor="@color/white" />
-
-            <Button
-                android:id="@+id/testButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/Blue_Firebase01"
-                android:text="Test Step Counter"
-                android:textColor="@color/white" />
-
-            <Button
-                android:id="@+id/newStepButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/Blue_Firebase01"
-                android:text="NEW Step Counter"
-                android:textColor="@color/white" />
-
-            <Button
-                android:id="@+id/logicRouteButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/black"
-                android:text="Logic Route"
                 android:textColor="@color/white" />
 
             <Space

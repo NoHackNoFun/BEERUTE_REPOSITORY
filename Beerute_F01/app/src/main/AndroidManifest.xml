@@ -48,19 +48,11 @@
             android:exported="false" />
 
         <activity
+            android:name=".RankingActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".IAHelpActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".testActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".NewStepCounterActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".LogicRouteActivity"
             android:exported="false" />
 
         <activity

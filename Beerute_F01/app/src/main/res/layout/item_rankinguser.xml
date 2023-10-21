@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/cardranking_background"
+    android:orientation="horizontal"
+    android:padding="16dp">
+
+    <!-- Nombre de usuario -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/usernameTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nombre de Usuario"
+            android:textColor="#000"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/userLegendTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="Leyenda del Usuario"
+            android:textColor="#666"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Espacio entre el nombre y la imagen -->
+
+    <Space
+        android:layout_width="16dp"
+        android:layout_height="match_parent" />
+
+    <!-- Imagen del usuario -->
+    <ImageView
+        android:id="@+id/userImageView"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="Medalla del Usuario" />
+
+</LinearLayout>

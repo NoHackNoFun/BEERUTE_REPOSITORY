@@ -92,7 +92,7 @@ class IAHelpActivity : AppCompatActivity() {
 
         val request: Request = Request.Builder()
             .url("https://api.openai.com/v1/completions")
-            .header("Authorization", "Bearer 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")
+            .header("Authorization", "Bearer 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")
             .post(body)
             .build()
 

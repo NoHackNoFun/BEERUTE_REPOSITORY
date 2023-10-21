@@ -20,11 +20,9 @@ class MainActivity : AppCompatActivity(){
 
     lateinit var exploreButton: Button
     lateinit var createButton: Button
+    lateinit var rankingButton: Button
     lateinit var IAHelpButton: Button
     lateinit var profileButton: Button
-    lateinit var newStepButton: Button
-    lateinit var testButton: Button
-    lateinit var logicRouteButton: Button
 
     companion object {
         private const val PERMISSION_REQUEST_CODE = 123
@@ -62,11 +60,9 @@ class MainActivity : AppCompatActivity(){
     private fun setup() {
         exploreButton = findViewById(R.id.exploreButton)
         createButton = findViewById(R.id.createButton)
+        rankingButton = findViewById(R.id.rankingButton)
         IAHelpButton = findViewById(R.id.IAHelpButton)
         profileButton = findViewById(R.id.profileButton)
-        newStepButton = findViewById(R.id.newStepButton)
-        testButton = findViewById(R.id.testButton)
-        logicRouteButton = findViewById(R.id.logicRouteButton)
 
         // Asignar listeners a los botones
         exploreButton.setOnClickListener {
@@ -79,6 +75,11 @@ class MainActivity : AppCompatActivity(){
             startActivity(cIntent)
         }
 
+        rankingButton.setOnClickListener {
+            val cIntent = Intent(this, RankingActivity::class.java)
+            startActivity(cIntent)
+        }
+
         IAHelpButton.setOnClickListener {
             val iaIntent = Intent(this, IAHelpActivity::class.java)
             startActivity(iaIntent)
@@ -87,21 +88,6 @@ class MainActivity : AppCompatActivity(){
         profileButton.setOnClickListener {
             val pIntent = Intent(this, ProfileActivity::class.java)
             startActivity(pIntent)
-        }
-
-        newStepButton.setOnClickListener {
-            val nspIntent = Intent(this, NewStepCounterActivity::class.java)
-            startActivity(nspIntent)
-        }
-
-        testButton.setOnClickListener {
-            val taIntent = Intent(this, testActivity::class.java)
-            startActivity(taIntent)
-        }
-
-        logicRouteButton.setOnClickListener {
-            val lIntent = Intent(this, LogicRouteActivity::class.java)
-            startActivity(lIntent)
         }
     }
 

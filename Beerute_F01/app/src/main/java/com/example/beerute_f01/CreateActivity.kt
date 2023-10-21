@@ -10,11 +10,11 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.location.Location
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.SystemClock
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.Chronometer
@@ -22,6 +22,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.beerute_f01.Object.GlobalVariables
@@ -45,6 +46,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
 
+@Suppress("NAME_SHADOWING")
 class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener,
     SensorEventListener {
 
@@ -98,6 +100,7 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
     /**
      * Método de creación de la actividad.
      */
+    @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create)
@@ -109,7 +112,8 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
     /**
      * Método para configurar los botones y las interacciones con el usuario.
      */
-    @SuppressLint("ResourceAsColor")
+    @RequiresApi(Build.VERSION_CODES.Q)
+    @SuppressLint("ResourceAsColor", "SetTextI18n")
     private fun setupButtons() {
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -273,7 +277,7 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
                     Toast.makeText(this, "¡¡¡ HAS BATIDO EL RECORD\nENHORABUENA !!!", Toast.LENGTH_SHORT).show()
 
                 } else {
-                    Toast.makeText(this, "¡¡¡ Esfuérzate cada día\ny LO CONSEGUIRÁS ${elapsedTime} | ${GlobalVariables.selectedTime}!!!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "¡¡¡ Esfuérzate cada día\ny LO CONSEGUIRÁS !!!", Toast.LENGTH_SHORT).show()
                 }
                 clearGlobalVariables()
 
@@ -311,7 +315,7 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
                     "place" to GlobalVariables.selectedPlace,
                     "steps" to GlobalVariables.selectedSteps,
                     "time" to GlobalVariables.selectedTime,
-                    "user" to GlobalVariables.selectedUser,
+                    "user" to GlobalVariables.userEmail,
                     "coordinatelist" to hashMapOf(
                         "latitude" to latitudeArray.toList(),
                         "longitude" to longitudeArray.toList(),
@@ -327,6 +331,63 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
                     .addOnFailureListener {
                         Toast.makeText(this, "Error al guardar los datos en Firebase", Toast.LENGTH_SHORT).show()
                     }
+
+                if (GlobalVariables.userEmail != null) {
+                    // Definir la referencia al documento del usuario actual
+                    val userRef = firestore.collection("users").document(GlobalVariables.userEmail)
+
+                    // Leer el valor actual de "kmmax" del documento del usuario
+                    userRef.get().addOnSuccessListener { documentSnapshot ->
+                        if (documentSnapshot.exists()) {
+                            val currentKmMax = documentSnapshot.getLong("kmmax")
+
+                            // Comparar con GlobalVariables.selectedKm
+                            if (currentKmMax == null || GlobalVariables.selectedKm > currentKmMax) {
+                                // Actualizar el valor de "kmmax" con GlobalVariables.selectedKm
+                                userRef.update("kmmax", GlobalVariables.selectedKm)
+                                    .addOnSuccessListener {
+
+                                        // La actualización fue exitosa
+                                        Toast.makeText(this, "Actualizados tus LOGROS", Toast.LENGTH_SHORT).show()
+
+                                        // Aquí puedes realizar cualquier acción adicional si es necesario
+                                    }
+                                    .addOnFailureListener { e ->
+
+                                        // Error al actualizar el campo "kmmax"
+                                        Toast.makeText(this, "Error al Actualizar tus LOGROS", Toast.LENGTH_SHORT).show()
+
+                                        // Manejar el error según sea necesario
+                                    }
+                            }
+                        } else {
+
+                            // El documento del usuario no existe, crearlo con el valor de "kmmax"
+                            val newUser = hashMapOf(
+                                "kmmax" to GlobalVariables.selectedKm
+                                // Puedes agregar otros campos aquí si es necesario
+                            )
+
+                            userRef.set(newUser)
+                                .addOnSuccessListener {
+
+                                    // Documento creado exitosamente
+                                    Toast.makeText(this, "Subidos tus LOGROS", Toast.LENGTH_SHORT).show()
+                                }
+                                .addOnFailureListener { e ->
+
+                                    // Error al crear el documento
+                                    Toast.makeText(this, "Error al Subir tus LOGROS", Toast.LENGTH_SHORT).show()
+
+                                    // Manejar el error según sea necesario
+                                }
+                        }
+                    }.addOnFailureListener { e ->
+                        // Error al obtener el documento del usuario
+                        // Manejar el error según sea necesario
+                    }
+                }
+
             } else {
                 Toast.makeText(this, "Debes ingresar un lugar", Toast.LENGTH_SHORT).show()
             }
@@ -372,6 +433,7 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
     /**
      * Método para visualizar los detalles de la ruta seleccionada.
      */
+    @SuppressLint("SetTextI18n")
     fun setRouteDetails() {
 
         if (GlobalVariables.selectedPlace != "") {
@@ -585,6 +647,7 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
     /**
      * Método para solicitar permiso de reconocimiento de actividad al usuario.
      */
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun requestSensorPermission() {
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -630,6 +693,7 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
     /**
      * Método para dar formato al tiempo.
      */
+    @SuppressLint("SimpleDateFormat")
     private fun formatTime(milliseconds: Double): String {
         val sdf = SimpleDateFormat("HH:mm:ss")
         sdf.timeZone = TimeZone.getTimeZone("UTC")
@@ -649,7 +713,7 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
 
                 startLocationUpdates()
                 // Test
-                //if (GlobalVariables.latitude == 0.0 || GlobalVariables.latitude != GlobalVariables.oldlatitude) {
+                if (GlobalVariables.latitude == 0.0 || GlobalVariables.latitude != GlobalVariables.oldlatitude) {
                     GlobalVariables.oldlatitude = GlobalVariables.latitude
                     GlobalVariables.oldlongitude = GlobalVariables.longitude
 
@@ -657,7 +721,7 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
                         latitudeArray.add(GlobalVariables.latitude)
                         longitudeArray.add(GlobalVariables.longitude)
                     }
-                //}
+                }
                 if (isRunning) {
                     handler.postDelayed(this, 500)// Repite el bucle después de 500 milisegundos
                 }
@@ -713,7 +777,9 @@ class CreateActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLo
      * Método llamado cuando se presiona el botón de retroceso.
      * Obliga a la clase a volver a la clase MainActivity.
      */
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
+        super.onBackPressed()
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
