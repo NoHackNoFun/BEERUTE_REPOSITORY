@@ -26,8 +26,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           gradlew sonarqube \
-            -Dsonar.organization= \
+            -Dsonar.organization=Carlos.Moreno27@alu.uclm.es \
             -Dsonar.projectKey=BEERUTE_REPOSITORIO \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.scanner.distribution=SonarScannerDistribution
+            -Dsonar.login=$SONAR_TOKEN
